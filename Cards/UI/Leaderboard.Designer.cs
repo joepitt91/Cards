@@ -29,53 +29,56 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Leaderboard));
-            this.lstPosition = new System.Windows.Forms.ListBox();
-            this.lstName = new System.Windows.Forms.ListBox();
-            this.lstPts = new System.Windows.Forms.ListBox();
+            this.lstLeaderboard = new System.Windows.Forms.ListView();
+            this.colPosition = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colPlayer = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colPoints = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
             // 
-            // lstPosition
+            // lstLeaderboard
             // 
-            this.lstPosition.FormattingEnabled = true;
-            this.lstPosition.ItemHeight = 14;
-            this.lstPosition.Location = new System.Drawing.Point(14, 12);
-            this.lstPosition.Name = "lstPosition";
-            this.lstPosition.Size = new System.Drawing.Size(31, 298);
-            this.lstPosition.TabIndex = 0;
-            this.lstPosition.SelectedIndexChanged += new System.EventHandler(this.lstPosition_SelectedIndexChanged);
+            this.lstLeaderboard.AccessibleName = "Leaderboard";
+            this.lstLeaderboard.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.colPosition,
+            this.colPlayer,
+            this.colPoints});
+            this.lstLeaderboard.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lstLeaderboard.FullRowSelect = true;
+            this.lstLeaderboard.GridLines = true;
+            this.lstLeaderboard.Location = new System.Drawing.Point(0, 0);
+            this.lstLeaderboard.MultiSelect = false;
+            this.lstLeaderboard.Name = "lstLeaderboard";
+            this.lstLeaderboard.Size = new System.Drawing.Size(273, 407);
+            this.lstLeaderboard.TabIndex = 3;
+            this.lstLeaderboard.UseCompatibleStateImageBehavior = false;
+            this.lstLeaderboard.View = System.Windows.Forms.View.Details;
             // 
-            // lstName
+            // colPosition
             // 
-            this.lstName.FormattingEnabled = true;
-            this.lstName.ItemHeight = 14;
-            this.lstName.Location = new System.Drawing.Point(52, 12);
-            this.lstName.Name = "lstName";
-            this.lstName.Size = new System.Drawing.Size(167, 298);
-            this.lstName.TabIndex = 1;
-            this.lstName.SelectedIndexChanged += new System.EventHandler(this.lstName_SelectedIndexChanged);
+            this.colPosition.Text = "No.";
+            this.colPosition.Width = 30;
             // 
-            // lstPts
+            // colPlayer
             // 
-            this.lstPts.FormattingEnabled = true;
-            this.lstPts.ItemHeight = 14;
-            this.lstPts.Location = new System.Drawing.Point(227, 12);
-            this.lstPts.Name = "lstPts";
-            this.lstPts.Size = new System.Drawing.Size(31, 298);
-            this.lstPts.TabIndex = 2;
-            this.lstPts.SelectedIndexChanged += new System.EventHandler(this.lstPts_SelectedIndexChanged);
+            this.colPlayer.Text = "Player";
+            this.colPlayer.Width = 188;
             // 
-            // frmLeaderboard
+            // colPoints
+            // 
+            this.colPoints.Text = "Points";
+            this.colPoints.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.colPoints.Width = 50;
+            // 
+            // Leaderboard
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(273, 316);
-            this.Controls.Add(this.lstPts);
-            this.Controls.Add(this.lstName);
-            this.Controls.Add(this.lstPosition);
+            this.ClientSize = new System.Drawing.Size(273, 407);
+            this.Controls.Add(this.lstLeaderboard);
             this.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "frmLeaderboard";
+            this.Name = "Leaderboard";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Leaderboard";
             this.ResumeLayout(false);
@@ -83,12 +86,9 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.ListBox lstPosition;
-        private System.Windows.Forms.ListBox lstName;
-        private System.Windows.Forms.ListBox lstPts;
-
-
-
+        private System.Windows.Forms.ListView lstLeaderboard;
+        private System.Windows.Forms.ColumnHeader colPosition;
+        private System.Windows.Forms.ColumnHeader colPlayer;
+        private System.Windows.Forms.ColumnHeader colPoints;
     }
 }

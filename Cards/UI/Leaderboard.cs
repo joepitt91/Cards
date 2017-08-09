@@ -57,34 +57,14 @@ namespace JoePitt.Cards.UI
         public void UpdateScores()
         {
             int i = 1;
-            lstPosition.Items.Clear();
-            lstName.Items.Clear();
-            lstPts.Items.Clear();
+            lstLeaderboard.Items.Clear();
             foreach (Player p in Program.CurrentGame.Players.ToList().OrderByDescending(p => p.Score))
             {
-                lstPosition.Items.Add(i);
-                lstName.Items.Add(p.Name);
-                lstPts.Items.Add(p.Score);
+                lstLeaderboard.Items.Add(i.ToString());
+                lstLeaderboard.Items[i - 1].SubItems.Add(p.Name);
+                lstLeaderboard.Items[i - 1].SubItems.Add(p.Score.ToString());
                 i++;
             }
-        }
-
-        private void lstPosition_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            lstName.SelectedIndex = lstPosition.SelectedIndex;
-            lstPts.SelectedIndex = lstPosition.SelectedIndex;
-        }
-
-        private void lstName_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            lstPosition.SelectedIndex = lstName.SelectedIndex;
-            lstPts.SelectedIndex = lstName.SelectedIndex;
-        }
-
-        private void lstPts_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            lstPosition.SelectedIndex = lstPts.SelectedIndex;
-            lstName.SelectedIndex = lstPts.SelectedIndex;
         }
     }
 }
