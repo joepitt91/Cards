@@ -139,7 +139,7 @@
             this.treDebug.Size = new System.Drawing.Size(984, 604);
             this.treDebug.TabIndex = 0;
             // 
-            // frmDebug
+            // Debug
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -147,10 +147,10 @@
             this.Controls.Add(this.treDebug);
             this.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "frmDebug";
+            this.Name = "Debug";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Debug - Cards";
-            this.Load += new System.EventHandler(this.frmDebug_Load);
+            this.Load += new System.EventHandler(this.Debug_Load);
             this.ResumeLayout(false);
 
         }

@@ -30,16 +30,11 @@ namespace JoePitt.Cards.Net
         /// <summary>
         /// The IP:Port combinations that can be used to connect to this game.
         /// </summary>
-        public List<string> ConnectionStrings { get; private set; }
-        /// <summary>
-        /// The TCP Port used by UPNP for external IPv4 Traffic.
-        /// </summary>
+        public List<ConnectionDetails> ConnectionStrings { get; private set; }
+
         private Game Game;
-        private int IPV4ExternalPort;
         private IPAddress IPV4ExternalIPAddress;
         private TcpListener tcpListener;
-        private Thread listenThread;
-        private List<Thread> ClientThreads;
         private List<TcpClient> ClientTcpClients;
         private bool ListenerUp;
         private BinaryFormatter formatter;
@@ -52,78 +47,59 @@ namespace JoePitt.Cards.Net
         {
             Game = game;
             Port = DefaultPort;
-            ConnectionStrings = new List<string>();
-            ClientThreads = new List<Thread>();
+            ConnectionStrings = new List<ConnectionDetails>();
             ClientTcpClients = new List<TcpClient>();
             formatter = new BinaryFormatter();
-            IPV4ExternalPort = DefaultPort;
+
             if (!DiscoverLocalPort())
             {
                 throw new NoFreePortsException();
             }
+
             DiscoverLocalIPV4Addresses();
-            if (Game.GameType != 'L')
-            {
-                if (DiscoverExternalIPV4Address())
-                {
-                    if (SetupIPV4UPNP())
-                    {
-                        ConnectionStrings.Add(IPV4ExternalIPAddress.ToString() + ":" + IPV4ExternalPort + " (Internet)");
-                    }
-                    else
-                    {
-                        ConnectionStrings.Add(IPV4ExternalIPAddress.ToString() + ":" + Port + " (Internet - Manual Forward Needed!)");
-                    }
-                }
-            }
+            DiscoverExternalIPV4Address();
             DiscoverIPV6Addresses();
-            ConnectionStrings.Add("127.0.0.1:" + Port + " (Local Machine)");
-            listenThread = new Thread(Listen);
-            listenThread.Name = "Cards Listener";
-            listenThread.Start();
-            Game.NetworkUp = true;
+
+            ThreadPool.QueueUserWorkItem(Listen);
         }
 
         private bool DiscoverLocalPort()
         {
-            Port = DefaultPort;
-            bool usablePort = false;
-            while (!usablePort)
+            IPGlobalProperties ipProperties = IPGlobalProperties.GetIPGlobalProperties();
+            TcpConnectionInformation[] tcpConnections = ipProperties.GetActiveTcpConnections();
+            retest:
+            foreach (TcpConnectionInformation tcpConnection in tcpConnections)
             {
-                IPGlobalProperties ipProperties = IPGlobalProperties.GetIPGlobalProperties();
-                TcpConnectionInformation[] tcpConnections = ipProperties.GetActiveTcpConnections();
-                foreach (TcpConnectionInformation tcpConnection in tcpConnections)
+                if (tcpConnection.LocalEndPoint.Port == Port)
                 {
-                    if (tcpConnection.LocalEndPoint.Port == Port)
+                    if (Port < DefaultPort + 100)
                     {
                         Port++;
-                        if (Port > 61069)
-                        {
-                            usablePort = false;
-                            return usablePort;
-                        }
-                        break;
+                        goto retest;
+                    }
+                    else
+                    {
+                        return false;
                     }
                 }
-                usablePort = true;
             }
-            return usablePort;
+            return true;
         }
 
         private void DiscoverLocalIPV4Addresses()
         {
-            NetworkInterface[] Interfaces = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (NetworkInterface Interface in Interfaces)
+            foreach (NetworkInterface iface in NetworkInterface.GetAllNetworkInterfaces().Where(iface =>
+                (iface.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ||
+                iface.NetworkInterfaceType == NetworkInterfaceType.Ethernet) &&
+                iface.GetIPProperties().GatewayAddresses.Count > 0))
             {
-                if (Interface.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ||
-                    Interface.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
+                foreach (UnicastIPAddressInformation ip in iface.GetIPProperties().UnicastAddresses.Where(ip =>
+                    ip.Address.AddressFamily == AddressFamily.InterNetwork))
                 {
-                    foreach (UnicastIPAddressInformation ip in Interface.GetIPProperties().UnicastAddresses)
+                    ConnectionStrings.Add(new ConnectionDetails(ip.Address, Port, false, false));
+                    if (Game.GameType != 'L')
                     {
-                        if (ip.Address.AddressFamily == AddressFamily.InterNetwork && Interface.GetIPProperties().GatewayAddresses.Count > 0)
-                        {
-                            ConnectionStrings.Add(ip.Address.ToString() + ":" + Port);
-                        }
+                        SetupUPNP(ip.Address);
                     }
                 }
             }
@@ -131,170 +107,81 @@ namespace JoePitt.Cards.Net
 
         private bool DiscoverExternalIPV4Address()
         {
-            var request = (HttpWebRequest)WebRequest.Create(new Uri("http://ifconfig.me"));
-            request.UserAgent = "curl"; // this simulate curl linux command
-            request.Method = "GET";
             try
             {
                 string externalIP = (new WebClient()).DownloadString("http://checkip.dyndns.org/");
                 externalIP = (new Regex(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")).Matches(externalIP)[0].ToString();
                 IPV4ExternalIPAddress = IPAddress.Parse(externalIP);
+                ConnectionStrings.Add(new ConnectionDetails(IPV4ExternalIPAddress, Port, true, false));
                 return true;
             }
             catch (WebException)
             {
-                MessageBox.Show("Unable to reach checkip.dyndns.org to get IP Address", "Error Detecting External IPv4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
             catch (FormatException)
             {
-                MessageBox.Show("Unexpected format received from checkip.dyndns.org", "Error Detecting External IPv4", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
-        }
-
-        private bool SetupIPV4UPNP()
-        {
-            UPnPNAT upnpnat = new UPnPNAT();
-            IStaticPortMappingCollection mappings = upnpnat.StaticPortMappingCollection;
-            if (mappings == null)
-            {
-                return false;
-            }
-            NetworkInterface[] Interfaces = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (NetworkInterface Interface in Interfaces)
-            {
-                if (Interface.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ||
-                    Interface.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
-                {
-                    foreach (UnicastIPAddressInformation ip in Interface.GetIPProperties().UnicastAddresses)
-                    {
-                        if (ip.Address.AddressFamily == AddressFamily.InterNetwork &&
-                            Interface.GetIPProperties().GatewayAddresses.Count > 0)
-                        {
-                            foreach (GatewayIPAddressInformation thisGateway in Interface.GetIPProperties().GatewayAddresses)
-                            {
-                                if (thisGateway.Address.AddressFamily == AddressFamily.InterNetwork)
-                                {
-                                retry:
-                                    try
-                                    {
-                                        mappings.Add(IPV4ExternalPort, "TCP", Port, ip.Address.ToString(), true, "Cards-IPv4");
-                                        return true;
-                                    }
-                                    catch (NullReferenceException)
-                                    {
-                                        if (IPV4ExternalPort < 60074)
-                                        {
-                                            IPV4ExternalPort++;
-                                            goto retry;
-                                        }
-                                    }
-                                }
-                            }
-
-                        }
-                    }
-                }
-            }
-            return false;
         }
 
         private void DiscoverIPV6Addresses()
         {
-            NetworkInterface[] Interfaces = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (NetworkInterface Interface in Interfaces)
+            foreach (NetworkInterface iface in NetworkInterface.GetAllNetworkInterfaces().Where(iface =>
+                (iface.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ||
+                iface.NetworkInterfaceType == NetworkInterfaceType.Ethernet) &&
+                iface.GetIPProperties().GatewayAddresses.Count > 0))
             {
-                if (Interface.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ||
-                    Interface.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
+                foreach (UnicastIPAddressInformation ip in iface.GetIPProperties().UnicastAddresses.Where(ip =>
+                    ip.Address.AddressFamily == AddressFamily.InterNetworkV6))
                 {
-                    foreach (UnicastIPAddressInformation ip in Interface.GetIPProperties().UnicastAddresses)
+                    if (!ip.Address.IsIPv6LinkLocal && !ip.Address.IsIPv6SiteLocal)
                     {
-                        if (ip.Address.AddressFamily == AddressFamily.InterNetworkV6 &&
-                            Interface.GetIPProperties().GatewayAddresses.Count > 0)
+                        ConnectionStrings.Add(new ConnectionDetails(ip.Address, Port, true, false));
+                        if (Game.GameType != 'L')
                         {
-                            if (Game.GameType != 'L')
-                            {
-                                if (!ip.Address.IsIPv6LinkLocal && !ip.Address.IsIPv6SiteLocal)
-                                {
-                                    if (!SetupIPV6UPNP(ip.Address))
-                                    {
-                                        ConnectionStrings.Add(ip.Address.ToString() + ":" + Port + " (Internet - Manual Forward Required!)");
-                                    }
-                                }
-                                else if (ip.Address.IsIPv6SiteLocal)
-                                {
-                                    ConnectionStrings.Add(ip.Address.ToString() + ":" + Port + " (Local Network)");
-                                }
-                            }
-                            else
-                            {
-                                ConnectionStrings.Add(ip.Address.ToString() + ":" + Port);
-                            }
+                            SetupUPNP(ip.Address);
                         }
+                    }
+                    else if (ip.Address.IsIPv6SiteLocal)
+                    {
+                        ConnectionStrings.Add(new ConnectionDetails(ip.Address, Port, false, false));
                     }
                 }
             }
         }
 
-        private bool SetupIPV6UPNP(IPAddress LocalIP)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
+        private void SetupUPNP(IPAddress LocalIP)
         {
-            int IPV6ExternalPort = Port;
             UPnPNAT upnpnat = new UPnPNAT();
             IStaticPortMappingCollection mappings = upnpnat.StaticPortMappingCollection;
             if (mappings == null)
             {
-                return false;
+                return;
             }
-            NetworkInterface[] Interfaces = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (NetworkInterface Interface in Interfaces)
+
+            try
             {
-                if (Interface.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ||
-                    Interface.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
-                {
-                    foreach (UnicastIPAddressInformation ip in Interface.GetIPProperties().UnicastAddresses)
-                    {
-                        if (ip.Address.ToString() == LocalIP.ToString() &&
-                            Interface.GetIPProperties().GatewayAddresses.Count > 0)
-                        {
-                            GatewayIPAddressInformation Gateway = Interface.GetIPProperties().GatewayAddresses[0];
-                            if (Gateway.Address.AddressFamily == AddressFamily.InterNetworkV6)
-                            {
-                            retry:
-                                try
-                                {
-                                    mappings.Add(IPV6ExternalPort, "TCP", Port, LocalIP.ToString(), true, "Cards-IPv6");
-                                    ConnectionStrings.Add(LocalIP.ToString() + ":" + IPV6ExternalPort + " (Internet)");
-                                    return true;
-                                }
-                                catch (System.Runtime.InteropServices.COMException)
-                                {
-                                    if (IPV6ExternalPort < 60074)
-                                    {
-                                        IPV6ExternalPort++;
-                                        goto retry;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                mappings.Add(Port, "TCP", Port, LocalIP.ToString(), true, "Cards");
             }
-            return false;
+            catch { }
         }
 
-        private void Listen()
+        private void Listen(object state)
         {
             tcpListener = new TcpListener(IPAddress.Any, Port);
             try
             {
                 tcpListener.Start();
                 ListenerUp = true;
+                Game.NetworkUp = true;
             }
             catch (SocketException)
             {
-                MessageBox.Show("Unable to start Game Networking, Restarting Cards.", "Unable to Bind Networking", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Application.Restart();
+                ListenerUp = false;
+                Game.NetworkUp = false;
+                throw new ListenerStartException();
             }
 
             while (ListenerUp)
@@ -305,14 +192,11 @@ namespace JoePitt.Cards.Net
                     {
                         TcpClient client = tcpListener.AcceptTcpClient();
                         ClientTcpClients.Add(client);
-                        Thread clientThread = new Thread(new ParameterizedThreadStart(ClientLink));
-                        clientThread.Name = "ClientLink_" + ClientTcpClients.Count;
-                        ClientThreads.Add(clientThread);
-                        clientThread.Start(client);
+                        ThreadPool.QueueUserWorkItem(ClientLink, client);
                     }
                     else
                     {
-                        Thread.Sleep(3000);
+                        Thread.Sleep(500);
                     }
                 }
                 catch (SocketException) { }
@@ -327,10 +211,12 @@ namespace JoePitt.Cards.Net
             while (myClient.Connected)
             {
                 string clientText = SharedNetworking.ReceiveString(myClient);
+
                 if (string.IsNullOrEmpty(clientText))
                 {
                     goto drop;
                 }
+
                 string serverText = "";
                 string[] ClientTexts = clientText.Split(' ');
                 switch (ClientTexts[0])
@@ -536,7 +422,7 @@ namespace JoePitt.Cards.Net
                         break;
                 }
                 serverText = serverText + Environment.NewLine;
-            retry:
+                retry:
                 if (!SharedNetworking.Send(myClient, serverText))
                 {
                     if (MessageBox.Show("A network error has occurred while sending the last response", "Network Error", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry)
@@ -549,7 +435,7 @@ namespace JoePitt.Cards.Net
                     }
                 }
             }
-        drop:
+            drop:
             myClient.Close();
         }
 
@@ -932,104 +818,21 @@ namespace JoePitt.Cards.Net
             {
                 thisClient.Close();
             }
-            foreach (Thread ClientThread in ClientThreads)
-            {
-                ClientThread.Interrupt();
-            }
             Game.NetworkUp = false;
-            DropIPV6UPNP();
-            DropIPV4UPNP();
+            DropUPNP();
             Dispose();
         }
 
-        private void DropIPV6UPNP()
+        private void DropUPNP()
         {
-            foreach (string ConnectionString in ConnectionStrings)
-            {
-                string IPString = ConnectionString.Substring(0, ConnectionString.LastIndexOf(":"));
-                int portStart = ConnectionString.LastIndexOf(":") + 1;
-                string portString = ConnectionString.Substring(portStart);
-                if (portString.Contains("("))
-                {
-                    portString = portString.Substring(0, portString.LastIndexOf(" ("));
-                }
-                int IPV6UPNPPort = Convert.ToInt32(portString);
-                IPAddress IP = IPAddress.Parse(IPString);
-                if (IP.AddressFamily == AddressFamily.InterNetworkV6)
-                {
-                    if (!ConnectionString.EndsWith("!)"))
-                    {
-                        UPnPNAT upnpnat = new UPnPNAT();
-                        IStaticPortMappingCollection mappings = upnpnat.StaticPortMappingCollection;
-                        if (IPV4ExternalIPAddress != null)
-                        {
-                            NetworkInterface[] Interfaces = NetworkInterface.GetAllNetworkInterfaces();
-                            foreach (NetworkInterface Interface in Interfaces)
-                            {
-                                if (Interface.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ||
-                                    Interface.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
-                                {
-                                    foreach (UnicastIPAddressInformation ip in Interface.GetIPProperties().UnicastAddresses)
-                                    {
-                                        if (ip.Address.ToString() == IP.ToString() &&
-                                            Interface.GetIPProperties().GatewayAddresses.Count > 0)
-                                        {
-                                            GatewayIPAddressInformation Gateway = Interface.GetIPProperties().GatewayAddresses[0];
-                                            if (Gateway.Address.AddressFamily == AddressFamily.InterNetworkV6)
-                                            {
-                                                try
-                                                {
-                                                    mappings.Remove(IPV6UPNPPort, "TCP");
-                                                }
-                                                catch (System.Runtime.InteropServices.COMException ex)
-                                                {
-                                                    MessageBox.Show(ex.Message);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
-        private void DropIPV4UPNP()
-        {
             UPnPNAT upnpnat = new UPnPNAT();
             IStaticPortMappingCollection mappings = upnpnat.StaticPortMappingCollection;
-            if (IPV4ExternalIPAddress != null)
+            try
             {
-                NetworkInterface[] Interfaces = NetworkInterface.GetAllNetworkInterfaces();
-                foreach (NetworkInterface Interface in Interfaces)
-                {
-                    if (Interface.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ||
-                        Interface.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
-                    {
-                        foreach (UnicastIPAddressInformation ip in Interface.GetIPProperties().UnicastAddresses)
-                        {
-                            if (ip.Address.AddressFamily == AddressFamily.InterNetwork &&
-                                Interface.GetIPProperties().GatewayAddresses.Count > 0)
-                            {
-                                GatewayIPAddressInformation Gateway = Interface.GetIPProperties().GatewayAddresses[0];
-                                if (Gateway.Address.AddressFamily == AddressFamily.InterNetwork)
-                                {
-                                    try
-                                    {
-                                        mappings.Remove(IPV4ExternalPort, "TCP");
-                                    }
-                                    catch (System.Runtime.InteropServices.COMException ex)
-                                    {
-                                        MessageBox.Show(ex.Message);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                mappings.Remove(Port, "TCP");
             }
+            catch (System.Runtime.InteropServices.COMException) { }
         }
 
         #region IDisposable Support

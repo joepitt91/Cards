@@ -59,7 +59,7 @@ namespace JoePitt.Cards.UI
             }
         }
 
-        private void frmNew_Load(object sender, EventArgs e)
+        private void New_Load(object sender, EventArgs e)
         {
             // Add Card Sets.
             chkCardSetsHost.Items.Clear();
@@ -264,14 +264,8 @@ namespace JoePitt.Cards.UI
                     playerNetwork.NewResponse = false;
                     Program.CurrentGame.LocalPlayers.Add(playerNetwork);
 
-                    string IPs = "";
-                    foreach (string ConnectionString in Program.CurrentGame.HostNetwork.ConnectionStrings)
-                    {
-                        IPs = IPs + ConnectionString + Environment.NewLine;
-                    }
-                    MessageBox.Show("Game Started, connect using:" + Environment.NewLine + Environment.NewLine + IPs, "Game Started", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    DialogResult = DialogResult.OK;
+                    ConnectionDetails connectionDetails = new ConnectionDetails();
+                    connectionDetails.ShowDialog();
                     Close();
                 }
                 else

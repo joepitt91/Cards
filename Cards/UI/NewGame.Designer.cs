@@ -698,7 +698,7 @@
             this.Name = "NewGame";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "New Game - Cards";
-            this.Load += new System.EventHandler(this.frmNew_Load);
+            this.Load += new System.EventHandler(this.New_Load);
             this.tabsType.ResumeLayout(false);
             this.tabLocal.ResumeLayout(false);
             this.tabLocal.PerformLayout();

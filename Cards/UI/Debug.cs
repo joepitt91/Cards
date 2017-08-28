@@ -17,8 +17,8 @@ namespace JoePitt.Cards.UI
         public Debug()
         {
             InitializeComponent();
-            KeyDown += FrmDebug_KeyDown;
-            treDebug.KeyDown += FrmDebug_KeyDown;
+            KeyDown += Debug_KeyDown;
+            treDebug.KeyDown += Debug_KeyDown;
             treDebug.AfterCheck += TreDebug_AfterCheck;
         }
 
@@ -37,7 +37,7 @@ namespace JoePitt.Cards.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void FrmDebug_KeyDown(object sender, KeyEventArgs e)
+        private void Debug_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Control & e.KeyCode == Keys.S)
             {
@@ -46,7 +46,7 @@ namespace JoePitt.Cards.UI
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "CardSet")]
-        private void frmDebug_Load(object sender, EventArgs e)
+        private void Debug_Load(object sender, EventArgs e)
         {
             Game game = Program.CurrentGame;
 
@@ -56,9 +56,9 @@ namespace JoePitt.Cards.UI
             if (game.GameType != 'J')
             {
                 treDebug.Nodes[0].Nodes["ServerNetworking"].Nodes.Add("Connection Strings");
-                foreach (string ConnectionString in game.HostNetwork.ConnectionStrings)
+                foreach (Net.ConnectionDetails ConnectionString in game.HostNetwork.ConnectionStrings)
                 {
-                    treDebug.Nodes[0].Nodes["ServerNetworking"].Nodes[0].Nodes.Add(ConnectionString);
+                    treDebug.Nodes[0].Nodes["ServerNetworking"].Nodes[0].Nodes.Add(ConnectionString.IP.ToString() + ":" + ConnectionString.Port);
                 }
                 treDebug.Nodes[0].Nodes["ServerNetworking"].Nodes.Add("Port", "Port: " + game.HostNetwork.Port);
             }
@@ -235,13 +235,15 @@ namespace JoePitt.Cards.UI
         {
             XElement rootElement = new XElement("Game", CreateXmlElement(treDebug.Nodes[0].Nodes));
             XDocument document = new XDocument(rootElement);
-            SaveFileDialog xmlSave = new SaveFileDialog();
-            xmlSave.AddExtension = true;
-            xmlSave.DefaultExt = ".xml";
-            xmlSave.FileName = DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss") + "_CardsDebug.xml";
-            xmlSave.Filter = "XML File (*.xml)|*.xml";
-            xmlSave.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            xmlSave.Title = "Save Debug Report";
+            SaveFileDialog xmlSave = new SaveFileDialog()
+            {
+                AddExtension = true,
+                DefaultExt = ".xml",
+                FileName = DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss") + "_CardsDebug.xml",
+                Filter = "XML File (*.xml)|*.xml",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                Title = "Save Debug Report"
+            };
             if (xmlSave.ShowDialog() == DialogResult.OK)
             {
                 document.Save(xmlSave.FileName);
@@ -279,8 +281,10 @@ namespace JoePitt.Cards.UI
                 }
                 else
                 {
-                    XElement element = new XElement(treeViewNode.Name.Replace('/', '_'));
-                    element.Value = "REMOVED";
+                    XElement element = new XElement(treeViewNode.Name.Replace('/', '_'))
+                    {
+                        Value = "REMOVED"
+                    };
                     elements.Add(element);
                 }
             }
