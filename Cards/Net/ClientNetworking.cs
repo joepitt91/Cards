@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Net.Sockets;
 using System.Threading;
 using System.Windows.Forms;
@@ -12,8 +13,6 @@ namespace JoePitt.Cards.Net
     {
         private string Address;
         private int Port;
-        private Thread ClientThread;
-
         /// <summary>
         /// The player who's Connection this is.
         /// </summary>
@@ -47,12 +46,10 @@ namespace JoePitt.Cards.Net
             Owner = ownerIn;
             Address = serverAddress;
             Port = serverPort;
-            ClientThread = new Thread(new ThreadStart(RunSession));
-            ClientThread.Name = "Cards Client";
-            ClientThread.Start();
+            ThreadPool.QueueUserWorkItem(RunSession);
         }
 
-        private void RunSession()
+        private void RunSession(object state)
         {
             TcpClient tcpClient;
             try
