@@ -58,7 +58,7 @@
             this.txtRules.TabIndex = 0;
             this.txtRules.Text = resources.GetString("txtRules.Text");
             // 
-            // frmRules
+            // Rules
             // 
             this.AcceptButton = this.btnClose;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
@@ -73,13 +73,13 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "frmRules";
+            this.Name = "Rules";
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Rules - Cards";
             this.TopMost = true;
-            this.Load += new System.EventHandler(this.frmRules_Load);
+            this.Load += new System.EventHandler(this.Rules_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -22,7 +22,7 @@ namespace JoePitt.Cards.UI
         public Gameplay()
         {
             InitializeComponent();
-            FormClosing += FrmGameplay_FormClosing;
+            FormClosing += Gameplay_FormClosing;
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace JoePitt.Cards.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void FrmGameplay_FormClosing(object sender, FormClosingEventArgs e)
+        private void Gameplay_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing && !Submitted)
             {
@@ -47,7 +47,7 @@ namespace JoePitt.Cards.UI
             }
         }
 
-        private void frmGameplay_Load(object sender, EventArgs e)
+        private void Gameplay_Load(object sender, EventArgs e)
         {
             Text = Program.CurrentPlayer.Owner.Name + " - Cards";
             Program.CurrentPlayer.NextCommand = "GAMEUPDATE";

@@ -19,7 +19,7 @@ namespace JoePitt.Cards.UI
         public Voting()
         {
             InitializeComponent();
-            FormClosing += FrmVote_FormClosing;
+            FormClosing += Vote_FormClosing;
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace JoePitt.Cards.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void FrmVote_FormClosing(object sender, FormClosingEventArgs e)
+        private void Vote_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing && !Submitted)
             {
@@ -62,7 +62,7 @@ namespace JoePitt.Cards.UI
             return false;
         }
 
-        private void frmVote_Load(object sender, EventArgs e)
+        private void Vote_Load(object sender, EventArgs e)
         {
             Program.CurrentPlayer.NextCommand = "GAMEUPDATE";
             Program.CurrentPlayer.NewCommand = true;

@@ -85,7 +85,7 @@
             this.cmbAnswers.TabIndex = 0;
             this.cmbAnswers.SelectedIndexChanged += new System.EventHandler(this.cmbAnswers_SelectedIndexChanged);
             // 
-            // frmVote
+            // Vote
             // 
             this.AcceptButton = this.btnVote;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
@@ -101,10 +101,10 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "frmVote";
+            this.Name = "Vote";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = " - Vote - Cards";
-            this.Load += new System.EventHandler(this.frmVote_Load);
+            this.Load += new System.EventHandler(this.Vote_Load);
             ((System.ComponentModel.ISupportInitialize)(this.picBlackCard)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

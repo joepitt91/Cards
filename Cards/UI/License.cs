@@ -21,7 +21,7 @@ namespace JoePitt.Cards.UI
             Dispose();
         }
 
-        private void frmLicense_Load(object sender, EventArgs e)
+        private void License_Load(object sender, EventArgs e)
         {
             txtTerms.Select(0, 0);
             txtTerms.AccessibleName = txtTerms.Text;

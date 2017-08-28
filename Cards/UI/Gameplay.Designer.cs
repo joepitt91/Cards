@@ -232,7 +232,7 @@
             this.txtRound.Text = "x/y";
             this.txtRound.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
-            // frmGameplay
+            // Gameplay
             // 
             this.AcceptButton = this.btnSubmit;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
@@ -257,10 +257,10 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
-            this.Name = "frmGameplay";
+            this.Name = "Gameplay";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Cards";
-            this.Load += new System.EventHandler(this.frmGameplay_Load);
+            this.Load += new System.EventHandler(this.Gameplay_Load);
             ((System.ComponentModel.ISupportInitialize)(this.picBlackCard)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picWhiteCard)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picWhiteCard2)).EndInit();

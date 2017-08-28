@@ -58,7 +58,7 @@
             this.txtTerms.TabIndex = 0;
             this.txtTerms.Text = resources.GetString("txtTerms.Text");
             // 
-            // frmLicense
+            // License
             // 
             this.AcceptButton = this.btnClose;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
@@ -71,11 +71,11 @@
             this.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "frmLicense";
+            this.Name = "License";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "License - Cards";
             this.TopMost = true;
-            this.Load += new System.EventHandler(this.frmLicense_Load);
+            this.Load += new System.EventHandler(this.License_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

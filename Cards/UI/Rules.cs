@@ -21,7 +21,7 @@ namespace JoePitt.Cards.UI
             Dispose();
         }
 
-        private void frmRules_Load(object sender, EventArgs e)
+        private void Rules_Load(object sender, EventArgs e)
         {
             txtRules.Select(0, 0);
             txtRules.AccessibleName = txtRules.Text;

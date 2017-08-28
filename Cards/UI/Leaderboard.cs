@@ -16,7 +16,7 @@ namespace JoePitt.Cards.UI
         public Leaderboard()
         {
             InitializeComponent();
-            FormClosing += FrmLeaderboard_FormClosing;
+            FormClosing += Leaderboard_FormClosing;
         }
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace JoePitt.Cards.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void FrmLeaderboard_FormClosing(object sender, FormClosingEventArgs e)
+        private void Leaderboard_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason != CloseReason.ApplicationExitCall)
             {

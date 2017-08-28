@@ -65,7 +65,7 @@
             this.txtMessage.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.txtMessage.UseWaitCursor = true;
             // 
-            // frmWaiting
+            // Waiting
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 14F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -80,11 +80,11 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "frmWaiting";
+            this.Name = "Waiting";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Waiting - Cards";
             this.UseWaitCursor = true;
-            this.Load += new System.EventHandler(this.frmWaiting_Load);
+            this.Load += new System.EventHandler(this.Waiting_Load);
             ((System.ComponentModel.ISupportInitialize)(this.picBlackCard)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

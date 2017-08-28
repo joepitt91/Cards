@@ -19,26 +19,15 @@ namespace JoePitt.Cards.UI
         public Waiting()
         {
             InitializeComponent();
-            FormClosing += FrmWaiting_FormClosing;
+            FormClosing += Waiting_FormClosing;
         }
-
-        /// <summary>
-        /// Starts the updater thread to keep UI Up to date.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void frmWaiting_Load(object sender, System.EventArgs e)
+        
+        private void Waiting_Load(object sender, System.EventArgs e)
         {
-            Thread updater = new Thread(KeepUpdated);
-            updater.Start();
+            ThreadPool.QueueUserWorkItem(KeepUpdated);
         }
-
-        /// <summary>
-        /// Prevents accidental closing and ends the game if close.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void FrmWaiting_FormClosing(object sender, FormClosingEventArgs e)
+        
+        private void Waiting_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing && waiting)
             {
@@ -70,7 +59,7 @@ namespace JoePitt.Cards.UI
         /// <summary>
         /// Updates the UI every second.
         /// </summary>
-        private void KeepUpdated()
+        private void KeepUpdated(object state)
         {
             while (waiting)
             {
