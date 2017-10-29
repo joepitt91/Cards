@@ -69,6 +69,12 @@ namespace JoePitt.Cards.UI
                 while (!Program.CurrentPlayer.NewResponse)
                 {
                     Application.DoEvents();
+                    if (Program.CurrentPlayer.Dropped)
+                    {
+                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Application.Restart();
+                        break;
+                    }
                 }
                 string[] response = Program.CurrentPlayer.LastResponse.Split(' ');
                 Program.CurrentPlayer.NewResponse = false;
@@ -106,6 +112,12 @@ namespace JoePitt.Cards.UI
                             while (!Program.CurrentPlayer.NewResponse)
                             {
                                 Application.DoEvents();
+                                if (Program.CurrentPlayer.Dropped)
+                                {
+                                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    Application.Restart();
+                                    break;
+                                }
                             }
                             string[] responseP = Program.CurrentPlayer.LastResponse.Split(' ');
                             Program.CurrentPlayer.NewResponse = false;
@@ -133,6 +145,12 @@ namespace JoePitt.Cards.UI
                             while (!Program.CurrentPlayer.NewResponse)
                             {
                                 Application.DoEvents();
+                                if (Program.CurrentPlayer.Dropped)
+                                {
+                                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    Application.Restart();
+                                    break;
+                                }
                             }
                             string[] responseP = Program.CurrentPlayer.LastResponse.Split(' ');
                             Program.CurrentPlayer.NewResponse = false;

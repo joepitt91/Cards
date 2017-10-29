@@ -86,6 +86,12 @@ namespace JoePitt.Cards
                     while (!CurrentPlayer.NewResponse)
                     {
                         Application.DoEvents();
+                        if (CurrentPlayer.Dropped)
+                        {
+                            MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            Application.Restart();
+                            break;
+                        }
                     }
                     string[] response = CurrentPlayer.LastResponse.Split(' ');
                     CurrentPlayer.NewResponse = false;
@@ -166,6 +172,12 @@ namespace JoePitt.Cards
                 while (!CurrentPlayer.NewResponse)
                 {
                     Application.DoEvents();
+                    if (CurrentPlayer.Dropped)
+                    {
+                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Application.Restart();
+                        break;
+                    }
                 }
                 string[] responseP = CurrentPlayer.LastResponse.Split(' ');
                 CurrentPlayer.NewResponse = false;
@@ -209,6 +221,12 @@ namespace JoePitt.Cards
                 while (!CurrentPlayer.NewResponse)
                 {
                     Application.DoEvents();
+                    if (CurrentPlayer.Dropped)
+                    {
+                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Application.Restart();
+                        break;
+                    }
                 }
                 string[] responseP = CurrentPlayer.LastResponse.Split(' ');
                 CurrentPlayer.NewResponse = false;
@@ -249,6 +267,12 @@ namespace JoePitt.Cards
             while (!CurrentPlayer.NewResponse)
             {
                 Application.DoEvents();
+                if (CurrentPlayer.Dropped)
+                {
+                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Restart();
+                    break;
+                }
             }
             string[] response = CurrentPlayer.LastResponse.Split(' ');
             CurrentPlayer.NewResponse = false;
@@ -292,6 +316,12 @@ namespace JoePitt.Cards
             while (!CurrentPlayer.NewResponse)
             {
                 Application.DoEvents();
+                if (CurrentPlayer.Dropped)
+                {
+                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Restart();
+                    break;
+                }
             }
             string[] response = CurrentPlayer.LastResponse.Split(' ');
             CurrentPlayer.NewResponse = false;

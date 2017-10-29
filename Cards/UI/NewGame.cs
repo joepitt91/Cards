@@ -152,6 +152,12 @@ namespace JoePitt.Cards.UI
                             while (!playerNetwork.NewResponse)
                             {
                                 Application.DoEvents();
+                                if (playerNetwork.Dropped)
+                                {
+                                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    Application.Restart();
+                                    break;
+                                }
                             }
                             if (playerNetwork.LastResponse == "SUCCESS")
                             {
@@ -268,6 +274,12 @@ namespace JoePitt.Cards.UI
                 while (!playerNetwork.NewResponse)
                 {
                     Application.DoEvents();
+                    if (playerNetwork.Dropped)
+                    {
+                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Application.Restart();
+                        break;
+                    }
                 }
 
                 if (playerNetwork.LastResponse == "SUCCESS")

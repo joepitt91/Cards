@@ -25,7 +25,7 @@ namespace JoePitt.Cards
         /// <summary>
         /// The hosting network provider, for hosted games.
         /// </summary>
-        
+
         public ServerNetworking HostNetwork { get { return HostNetworkField; } private set { HostNetworkField = value; } }
         [NonSerialized]
         private ServerNetworking HostNetworkField;
@@ -247,6 +247,12 @@ namespace JoePitt.Cards
                 while (!playerNetwork.NewResponse)
                 {
                     Application.DoEvents();
+                    if (playerNetwork.Dropped)
+                    {
+                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Application.Restart();
+                        break;
+                    }
                 }
                 string ServerResponse = playerNetwork.LastResponse;
                 playerNetwork.NewResponse = false;
@@ -263,22 +269,10 @@ namespace JoePitt.Cards
                         switch (ServerResponse.Split(' ')[1])
                         {
                             case "NoSpace":
-                                if (MessageBox.Show("Failed  to Join Game: No space in game.", "Join Failed", MessageBoxButtons.RetryCancel, MessageBoxIcon.Exclamation) == DialogResult.Retry)
-                                {
-                                    goto StartJoin;
-                                }
-                                else
-                                {
-                                    playerNetwork.NextCommand = "EXIT";
-                                    playerNetwork.NewCommand = true;
-                                    while (!playerNetwork.NewResponse)
-                                    {
-                                        Application.DoEvents();
-                                    }
-                                    return false;
-                                }
+                                reason = "The game is already full.";
+                                break;
                             case "BadPass":
-                                reason = "Name in use or Password incorrect";
+                                reason = "A player with that name has already joined.";
                                 break;
                         }
                     }
@@ -288,6 +282,10 @@ namespace JoePitt.Cards
                     while (!playerNetwork.NewResponse)
                     {
                         Application.DoEvents();
+                        if (playerNetwork.Dropped)
+                        {
+                            break;
+                        }
                     }
                     return false;
                 }
@@ -297,6 +295,12 @@ namespace JoePitt.Cards
                 while (!Program.CurrentPlayer.NewResponse)
                 {
                     Application.DoEvents();
+                    if (playerNetwork.Dropped)
+                    {
+                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Application.Restart();
+                        break;
+                    }
                 }
                 string[] responses = Program.CurrentPlayer.LastResponse.Split(' ');
                 Program.CurrentPlayer.NewResponse = false;
@@ -328,6 +332,12 @@ namespace JoePitt.Cards
                 while (!Program.CurrentPlayer.NewResponse)
                 {
                     Application.DoEvents();
+                    if (playerNetwork.Dropped)
+                    {
+                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Application.Restart();
+                        break;
+                    }
                 }
                 string response = Program.CurrentPlayer.LastResponse;
                 Program.CurrentPlayer.NewResponse = false;
@@ -353,6 +363,12 @@ namespace JoePitt.Cards
                     while (!playerNetwork.NewResponse)
                     {
                         Application.DoEvents();
+                        if (playerNetwork.Dropped)
+                        {
+                            MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            Application.Restart();
+                            break;
+                        }
                     }
                     return false;
                 }
