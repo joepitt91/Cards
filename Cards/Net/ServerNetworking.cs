@@ -575,7 +575,7 @@ namespace JoePitt.Cards.Net
         private string HandleGameScores()
         {
             string serverText = "";
-            foreach (Player player in Game.Players)
+            foreach (Player player in Game.Players.OrderByDescending(player => player.Score).ThenBy(player => player.Name))
             {
                 serverText = serverText + player.Name.Replace(' ', '_') + ":" + player.Score + ",";
             }

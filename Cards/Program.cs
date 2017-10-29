@@ -7,7 +7,6 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
-using System.Threading;
 using System.Windows.Forms;
 
 namespace JoePitt.Cards
@@ -80,8 +79,8 @@ namespace JoePitt.Cards
             {
                 while (CurrentGame.Playable)
                 {
-                    LeaderBoard.UpdateScores();
                     CurrentPlayer = CurrentGame.LocalPlayers[0];
+                    LeaderBoard.UpdateScores();
                     string fullResponse = "";
                     try
                     {
@@ -313,7 +312,6 @@ namespace JoePitt.Cards
             string[] response = fullResponse.Split(' ');
             try
             {
-
                 byte[] winnersBytes = Convert.FromBase64String(response[0]);
                 using (MemoryStream stream = new MemoryStream(winnersBytes))
                 {
