@@ -111,6 +111,7 @@
     <Compile Include="Answer.cs" />
     <Compile Include="Card.cs" />
     <Compile Include="CardSet.cs" />
+    <Compile Include="CrashReport.cs" />
     <Compile Include="Dealer.cs" />
     <Compile Include="Exceptions\ListenerStartException.cs" />
     <Compile Include="Net\ClientNetworking.cs" />

@@ -369,14 +369,15 @@ namespace JoePitt.Cards
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Exception ex = (Exception)e.ExceptionObject;
+            new CrashReport(ex);
             string Error = "Cards will exit due to a fatal error from which it cannot recover. " +
-                "If this happens again, please report it to the developer with: " +
-                "Where you were in the game, and the below technical details" +
                 Environment.NewLine + Environment.NewLine +
-                "Error Message: " + ex.Message + Environment.NewLine + Environment.NewLine +
-                "Additional Data: " + Environment.NewLine + ex.Data + Environment.NewLine + Environment.NewLine +
-                "Stack Trace: " + Environment.NewLine + ex.StackTrace;
-            MessageBox.Show(Error, "FATAL ERROR", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                "Would you like to report it to the developer? If so, Please include what you were doing in" +
+                "the game, and attach the Crash Report which has been generated in your Documents folder.";
+            if (MessageBox.Show(Error, "FATAL ERROR", MessageBoxButtons.YesNo, MessageBoxIcon.Stop) == DialogResult.Yes)
+            {
+                System.Diagnostics.Process.Start("https://www.joepitt.co.uk/Contact");
+            }
             Application.Exit();
         }
     }
