@@ -36,7 +36,7 @@ namespace JoePitt.Cards
 
         static public BinaryFormatter Formatter { get; set; }
 
-        static private int ShownWinners { get; set; }
+        static private int ShownWinners;
         static private Waiting waiting;
 
 
