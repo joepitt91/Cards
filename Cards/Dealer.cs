@@ -16,6 +16,9 @@ namespace JoePitt.Cards
     /// </summary>
     static internal class Dealer
     {
+        static private RNGCryptoServiceProvider seeder = new RNGCryptoServiceProvider();
+        static private SHA256CryptoServiceProvider hasher = new SHA256CryptoServiceProvider();
+
         static public bool TestCardSetPath()
         {
             try
@@ -110,7 +113,6 @@ namespace JoePitt.Cards
                 // Verify Hash
                 XmlElement xmlBlackCards = (XmlElement)cardSetDoc.GetElementsByTagName("BlackCards")[0];
                 XmlElement xmlWhiteCards = (XmlElement)cardSetDoc.GetElementsByTagName("WhiteCards")[0];
-                SHA256CryptoServiceProvider hasher = new SHA256CryptoServiceProvider();
                 byte[] allCards = Encoding.Default.GetBytes(xmlBlackCards.InnerXml + xmlWhiteCards.InnerXml);
                 byte[] hash = hasher.ComputeHash(allCards);
                 string computedHash = Convert.ToBase64String(hash);
@@ -284,12 +286,11 @@ namespace JoePitt.Cards
         {
             if (cards == null) { throw new ArgumentNullException("cards"); }
             int moveFrom = 1;
-            RNGCryptoServiceProvider seeder = new RNGCryptoServiceProvider();
             byte[] seed = new byte[4];
             seeder.GetBytes(seed);
             Random shuffler = new Random(BitConverter.ToInt32(seed, 0));
             int shuffleCount = 0;
-            int shuffles = shuffler.Next(10000, 50000);
+            int shuffles = shuffler.Next(10, 20);
             while (shuffleCount < shuffles)
             {
                 while (moveFrom < cards.Count)
@@ -316,12 +317,11 @@ namespace JoePitt.Cards
         {
             if (answers == null) { throw new ArgumentNullException("answers"); }
             int moveFrom = 0;
-            RNGCryptoServiceProvider seeder = new RNGCryptoServiceProvider();
             byte[] seed = new byte[4];
             seeder.GetBytes(seed);
             Random shuffler = new Random(BitConverter.ToInt32(seed, 0));
             int shuffleCount = 0;
-            int shuffles = shuffler.Next(10000, 50000);
+            int shuffles = shuffler.Next(10, 20);
             while (shuffleCount < shuffles)
             {
                 while (moveFrom < answers.Count)
