@@ -183,8 +183,10 @@ namespace JoePitt.Cards
             }
             else
             {
-                Players = new List<Cards.Player>();
-                Players.Add(new Player(playerNames[0], new List<Card>()));
+                Players = new List<Player>
+                {
+                    new Player(playerNames[0], new List<Card>())
+                };
             }
         }
 
