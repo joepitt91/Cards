@@ -41,6 +41,7 @@
             this.lstPlayers = new System.Windows.Forms.ListView();
             this.btnTestSelected = new System.Windows.Forms.Button();
             this.lblPlayersJoined = new System.Windows.Forms.Label();
+            this.btnCopyToClipboard = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // lstConnections
@@ -76,12 +77,12 @@
             // colScope
             // 
             this.colScope.Text = "Scope";
-            this.colScope.Width = 100;
+            this.colScope.Width = 90;
             // 
             // colConnectivity
             // 
             this.colConnectivity.Text = "Port Forwarding";
-            this.colConnectivity.Width = 206;
+            this.colConnectivity.Width = 190;
             // 
             // lblConnectionDetials
             // 
@@ -101,7 +102,7 @@
             this.lstPlayers.Location = new System.Drawing.Point(12, 196);
             this.lstPlayers.Name = "lstPlayers";
             this.lstPlayers.Size = new System.Drawing.Size(610, 53);
-            this.lstPlayers.TabIndex = 4;
+            this.lstPlayers.TabIndex = 5;
             this.lstPlayers.UseCompatibleStateImageBehavior = false;
             this.lstPlayers.View = System.Windows.Forms.View.List;
             // 
@@ -109,11 +110,11 @@
             // 
             this.btnTestSelected.Location = new System.Drawing.Point(12, 145);
             this.btnTestSelected.Name = "btnTestSelected";
-            this.btnTestSelected.Size = new System.Drawing.Size(610, 23);
+            this.btnTestSelected.Size = new System.Drawing.Size(290, 23);
             this.btnTestSelected.TabIndex = 2;
             this.btnTestSelected.Text = "&Test Selected Connection";
             this.btnTestSelected.UseVisualStyleBackColor = true;
-            this.btnTestSelected.Click += new System.EventHandler(this.BtnTestSelected_Click);
+            this.btnTestSelected.Click += new System.EventHandler(this.TestSelected_Click);
             // 
             // lblPlayersJoined
             // 
@@ -121,14 +122,25 @@
             this.lblPlayersJoined.Location = new System.Drawing.Point(12, 180);
             this.lblPlayersJoined.Name = "lblPlayersJoined";
             this.lblPlayersJoined.Size = new System.Drawing.Size(167, 13);
-            this.lblPlayersJoined.TabIndex = 3;
+            this.lblPlayersJoined.TabIndex = 4;
             this.lblPlayersJoined.Text = "The following players have joined:";
+            // 
+            // btnCopyToClipboard
+            // 
+            this.btnCopyToClipboard.Location = new System.Drawing.Point(332, 145);
+            this.btnCopyToClipboard.Name = "btnCopyToClipboard";
+            this.btnCopyToClipboard.Size = new System.Drawing.Size(290, 23);
+            this.btnCopyToClipboard.TabIndex = 3;
+            this.btnCopyToClipboard.Text = "Copy Selected Connection to Clipboard";
+            this.btnCopyToClipboard.UseVisualStyleBackColor = true;
+            this.btnCopyToClipboard.Click += new System.EventHandler(this.CopyToClipboard_Click);
             // 
             // ConnectionDetails
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(634, 261);
+            this.Controls.Add(this.btnCopyToClipboard);
             this.Controls.Add(this.lblPlayersJoined);
             this.Controls.Add(this.btnTestSelected);
             this.Controls.Add(this.lstPlayers);
@@ -157,5 +169,6 @@
         private System.Windows.Forms.ListView lstPlayers;
         private System.Windows.Forms.Button btnTestSelected;
         private System.Windows.Forms.Label lblPlayersJoined;
+        private System.Windows.Forms.Button btnCopyToClipboard;
     }
 }
