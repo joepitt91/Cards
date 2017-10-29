@@ -230,6 +230,11 @@ namespace JoePitt.Cards
             while (!playerNetwork.NewResponse)
             {
                 Application.DoEvents();
+                if (playerNetwork.Established && playerNetwork.Dropped)
+                {
+                    MessageBox.Show("Failed to Join Game: Connection Dropped.", "Failed to Join", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return false;
+                }
             }
             string ServerHello = playerNetwork.LastResponse;
             playerNetwork.NewResponse = false;

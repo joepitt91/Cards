@@ -33,6 +33,7 @@ namespace JoePitt.Cards.UI
                 updater.ReportProgress(0);
                 Thread.Sleep(3000);
             }
+            updater.ReportProgress(100);
         }
 
         private void Updater_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -43,11 +44,15 @@ namespace JoePitt.Cards.UI
             {
                 lstPlayers.Items.Add(player.Name);
             }
+            if (e.ProgressPercentage == 100)
+            {
+                Close();
+            }
         }
 
         private void ConnectionDetails_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (e.CloseReason == CloseReason.UserClosing)
+            if (e.CloseReason == CloseReason.UserClosing && Program.CurrentGame.Stage == 'W')
             {
                 if (MessageBox.Show("Are you sure you want to cancel the game?", "Cancel Game?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
                 {
@@ -59,6 +64,10 @@ namespace JoePitt.Cards.UI
                     e.Cancel = true;
                     return;
                 }
+            }
+            else
+            {
+                updater.CancelAsync();
             }
         }
 
@@ -101,77 +110,82 @@ namespace JoePitt.Cards.UI
             string response = "";
             int tries = 0;
             retry:
-            lstConnections.Invoke((MethodInvoker)delegate
-            {
-                lstConnections.Items[Convert.ToInt32(parameters[2])].SubItems[3].Text = "Testing...";
-            });
             try
             {
-                response = client.DownloadString(url);
-            }
-            catch (WebException) { }
+                lstConnections.Invoke((MethodInvoker)delegate
+                {
+                    lstConnections.Items[Convert.ToInt32(parameters[2])].SubItems[3].Text = "Testing...";
+                });
+                try
+                {
+                    response = client.DownloadString(url);
+                }
+                catch (WebException) { }
 
-            string resultStr = "";
-            bool retry = false;
-            switch (response)
-            {
-                case "Pass":
-                    resultStr = "Successful";
-                    break;
-                case "VerifyFailed":
-                    resultStr = "Wrong Machine - Manual Forward Required";
-                    break;
-                case "ConnectFailed":
-                    resultStr = "Failed - Manual Forward Required";
-                    break;
-                case "BadIP":
-                    resultStr = "Test Failed - IP Misunderstood";
-                    if (tries < 4) retry = true;
-                    break;
-                case "InvalidPort":
-                    resultStr = "Test Failed - Port Out of Range";
-                    if (tries < 4) retry = true;
-                    break;
-                case "BadPort":
-                    resultStr = "Test Failed - Port Misunderstood";
-                    if (tries < 4) retry = true;
-                    break;
-                case "BadGUID":
-                    resultStr = "Test Failed - Client Test ID Misunderstood";
-                    if (tries < 4) retry = true;
-                    break;
-                case "BadServerGUID":
-                    resultStr = "Test Failed - Host Test ID Misunderstood";
-                    if (tries < 4) retry = true;
-                    break;
-                case "UnknownFail":
-                    resultStr = "Test Failed - Reason Unknown";
-                    if (tries < 4) retry = true;
-                    break;
-                case "NoParams":
-                    resultStr = "Test Failed - Parameters Misunderstood";
-                    if (tries < 4) retry = true;
-                    break;
-                default:
-                    resultStr = "Test Failed - Unknown Reason";
-                    if (tries < 4) retry = true;
-                    break;
-            }
-            tries++;
+                string resultStr = "";
+                bool retry = false;
+                switch (response)
+                {
+                    case "Pass":
+                        resultStr = "Successful";
+                        break;
+                    case "VerifyFailed":
+                        resultStr = "Wrong Machine - Manual Forward Required";
+                        break;
+                    case "ConnectFailed":
+                        resultStr = "Failed - Manual Forward Required";
+                        break;
+                    case "BadIP":
+                        resultStr = "Test Failed - IP Misunderstood";
+                        if (tries < 4) retry = true;
+                        break;
+                    case "InvalidPort":
+                        resultStr = "Test Failed - Port Out of Range";
+                        if (tries < 4) retry = true;
+                        break;
+                    case "BadPort":
+                        resultStr = "Test Failed - Port Misunderstood";
+                        if (tries < 4) retry = true;
+                        break;
+                    case "BadGUID":
+                        resultStr = "Test Failed - Client Test ID Misunderstood";
+                        if (tries < 4) retry = true;
+                        break;
+                    case "BadServerGUID":
+                        resultStr = "Test Failed - Host Test ID Misunderstood";
+                        if (tries < 4) retry = true;
+                        break;
+                    case "UnknownFail":
+                        resultStr = "Test Failed - Reason Unknown";
+                        if (tries < 4) retry = true;
+                        break;
+                    case "NoParams":
+                        resultStr = "Test Failed - Parameters Misunderstood";
+                        if (tries < 4) retry = true;
+                        break;
+                    default:
+                        resultStr = "Test Failed - Unknown Reason";
+                        if (tries < 4) retry = true;
+                        break;
+                }
+                tries++;
 
-            lstConnections.Invoke((MethodInvoker)delegate
-            {
-                lstConnections.Items[Convert.ToInt32(parameters[2])].SubItems[3].Text = resultStr;
+                lstConnections.Invoke((MethodInvoker)delegate
+                {
+                    lstConnections.Items[Convert.ToInt32(parameters[2])].SubItems[3].Text = resultStr;
+                    if (retry)
+                    {
+                        lstConnections.Items[Convert.ToInt32(parameters[2])].SubItems[3].Text = resultStr + " (Retry in 3s)";
+                    }
+                });
                 if (retry)
                 {
-                    lstConnections.Items[Convert.ToInt32(parameters[2])].SubItems[3].Text = resultStr + " (Retry in 3s)";
+                    Thread.Sleep(3000);
+                    goto retry;
                 }
-            });
-            if (retry)
-            {
-                Thread.Sleep(3000);
-                goto retry;
             }
+            catch
+            { }
         }
 
         private void TestSelected_Click(object sender, EventArgs e)

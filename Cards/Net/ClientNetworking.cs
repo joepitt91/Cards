@@ -19,6 +19,14 @@ namespace JoePitt.Cards.Net
         /// </summary>
         public Player Owner { get; private set; }
         /// <summary>
+        /// If the Client Networking has ever been established.
+        /// </summary>
+        public bool Established { get; private set; }
+        /// <summary>
+        /// If the Client Networking has been dropped.
+        /// </summary>
+        public bool Dropped { get; private set; }
+        /// <summary>
         /// If there is a command waiting to be sent.
         /// </summary>
         public bool NewCommand { get; set; } = false;
@@ -35,7 +43,6 @@ namespace JoePitt.Cards.Net
         /// </summary>
         public string LastResponse { get; private set; } = "";
 
-
         /// <summary>
         /// Sets up the Player's Networking.
         /// </summary>
@@ -47,6 +54,8 @@ namespace JoePitt.Cards.Net
             Owner = ownerIn;
             Address = serverAddress;
             Port = serverPort;
+            Established = false;
+            Dropped = false;
             ThreadPool.QueueUserWorkItem(RunSession);
         }
 
@@ -70,6 +79,8 @@ namespace JoePitt.Cards.Net
                 Application.Restart();
                 return;
             }
+            Established = true;
+            Program.CurrentGame.Playable = true;
 
             while (Program.CurrentGame.Playable)
             {
@@ -120,6 +131,7 @@ namespace JoePitt.Cards.Net
                 }
             }
             clientSocket.Close();
+            Dropped = true;
         }
     }
 }
