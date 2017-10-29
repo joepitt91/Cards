@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Windows.Forms;
@@ -51,14 +52,21 @@ namespace JoePitt.Cards.Net
 
         private void RunSession(object state)
         {
-            TcpClient tcpClient;
-            try
+            IPAddress hostAddress = IPAddress.None;
+            IPAddress.TryParse(Address, out hostAddress);
+            if (hostAddress == IPAddress.None)
             {
-                tcpClient = new TcpClient(Address, Port);
+                return;
             }
-            catch (SocketException ex)
+
+            Socket clientSocket = new Socket(hostAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            IAsyncResult result = clientSocket.BeginConnect(hostAddress, Port, null, null);
+            bool success = result.AsyncWaitHandle.WaitOne(15000, true);
+            if (!success)
             {
-                MessageBox.Show("Unable to connect to game (" + ex.Message + ")", "Unable to connect", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                clientSocket.Close();
+                MessageBox.Show("A network error has occurred while connecting to the game.",
+                    "Unable to connect", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Application.Restart();
                 return;
             }
@@ -67,22 +75,19 @@ namespace JoePitt.Cards.Net
             {
                 if (NewCommand)
                 {
-                retry:
-                    if (SharedNetworking.Send(tcpClient, NextCommand))
+                    retry:
+                    if (SharedNetworking.SendString(clientSocket, NextCommand))
                     {
                         NewCommand = false;
-                        LastResponse = SharedNetworking.ReceiveString(tcpClient);
-                        if (LastResponse.Contains(Environment.NewLine))
-                        {
-                            LastResponse = LastResponse.Replace(Environment.NewLine, "");
-                        }
+                        LastResponse = SharedNetworking.GetString(clientSocket);
                         if (!string.IsNullOrEmpty(LastResponse))
                         {
                             NewResponse = true;
                         }
                         else
                         {
-                            if (MessageBox.Show("A network error has occurred while getting the response to the last command", "Network Error", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry)
+                            if (MessageBox.Show("A network error has occurred processing the last action.",
+                                "Network Error", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry)
                             {
                                 NewResponse = false;
                                 NewCommand = true;
@@ -96,7 +101,8 @@ namespace JoePitt.Cards.Net
                     }
                     else
                     {
-                        if (MessageBox.Show("A network error has occurred while sending the last command", "Network Error", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry)
+                        if (MessageBox.Show("A network error has occurred sending the last action.",
+                            "Network Error", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry)
                         {
                             NewResponse = false;
                             NewCommand = true;
@@ -113,7 +119,7 @@ namespace JoePitt.Cards.Net
                     Thread.Sleep(500);
                 }
             }
-            tcpClient.Close();
+            clientSocket.Close();
         }
     }
 }

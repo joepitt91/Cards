@@ -7,7 +7,6 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
@@ -32,12 +31,17 @@ namespace JoePitt.Cards.Net
         /// </summary>
         public List<ConnectionDetails> ConnectionStrings { get; private set; }
 
+        /// <summary>
+        /// The GUID to be used to verify Port Forwarding.
+        /// </summary>
+        public Guid PortCheckID { get; private set; }
+
         private Game Game;
         private IPAddress IPV4ExternalIPAddress;
         private TcpListener tcpListener;
-        private List<TcpClient> ClientTcpClients;
+        private List<Socket> ClientTcpClients;
         private bool ListenerUp;
-        private BinaryFormatter formatter;
+
 
         /// <summary>
         /// Initialise networking for the specified Game.
@@ -48,8 +52,9 @@ namespace JoePitt.Cards.Net
             Game = game;
             Port = DefaultPort;
             ConnectionStrings = new List<ConnectionDetails>();
-            ClientTcpClients = new List<TcpClient>();
-            formatter = new BinaryFormatter();
+            PortCheckID = Guid.NewGuid();
+            ClientTcpClients = new List<Socket>();
+
 
             if (!DiscoverLocalPort())
             {
@@ -190,9 +195,9 @@ namespace JoePitt.Cards.Net
                 {
                     if (tcpListener.Pending())
                     {
-                        TcpClient client = tcpListener.AcceptTcpClient();
-                        ClientTcpClients.Add(client);
-                        ThreadPool.QueueUserWorkItem(ClientLink, client);
+                        Socket clientSocket = tcpListener.AcceptSocket();
+                        ClientTcpClients.Add(clientSocket);
+                        ThreadPool.QueueUserWorkItem(ClientLink, clientSocket);
                     }
                     else
                     {
@@ -205,12 +210,12 @@ namespace JoePitt.Cards.Net
 
         private void ClientLink(object myClientObj)
         {
-            TcpClient myClient = (TcpClient)myClientObj;
+            Socket myClient = (Socket)myClientObj;
             Player thisPlayer = new Player("FAKE", new List<Card>());
 
             while (myClient.Connected)
             {
-                string clientText = SharedNetworking.ReceiveString(myClient);
+                string clientText = SharedNetworking.GetString(myClient);
 
                 if (string.IsNullOrEmpty(clientText))
                 {
@@ -404,6 +409,11 @@ namespace JoePitt.Cards.Net
                         serverText = HandleCheat(thisPlayer, ClientTexts);
                         break;
 
+                    // Answer PortCheck Requests
+                    case "PortCheck":
+                        serverText = PortCheckID.ToString();
+                        break;
+
                     /*
                      * Exits the game
                      * EXPECTS:
@@ -421,21 +431,23 @@ namespace JoePitt.Cards.Net
                         serverText = "Shut up meg!";
                         break;
                 }
-                serverText = serverText + Environment.NewLine;
-                retry:
-                if (!SharedNetworking.Send(myClient, serverText))
+
+                if (!SharedNetworking.SendString(myClient, serverText))
                 {
-                    if (MessageBox.Show("A network error has occurred while sending the last response", "Network Error", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry)
-                    {
-                        goto retry;
-                    }
-                    else
-                    {
-                        Application.Restart();
-                    }
+                    MessageBox.Show("A network error has occurred sending a response from your game host.",
+                        "Network Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             drop:
+            try
+            {
+                myClient.SendTimeout = 3000;
+                SharedNetworking.SendString(myClient, "BYE");
+            }
+            catch (SocketException)
+            { }
+            catch (ObjectDisposedException)
+            { }
             myClient.Close();
         }
 
@@ -521,12 +533,13 @@ namespace JoePitt.Cards.Net
 
         private string HandleGetCards()
         {
+            byte[] bytes = new byte[0];
             using (MemoryStream stream = new MemoryStream())
             {
-                formatter.Serialize(stream, Game.GameSet);
-                byte[] cardsArray = stream.ToArray();
-                return Convert.ToBase64String(cardsArray);
+                Program.Formatter.Serialize(stream, Game.GameSet);
+                bytes = stream.ToArray();
             }
+            return Convert.ToBase64String(bytes);
         }
 
         private string HandleGetRules()
@@ -549,7 +562,7 @@ namespace JoePitt.Cards.Net
                 case 'W':
                     return "WAITING";
                 case 'P':
-                    return "PLAYING " + Convert.ToBase64String(Game.GameSet.BlackCards[Game.GameSet.BlackCardIndex[Game.CurrentBlackCard]].ToArray()) + " " + Game.Round;
+                    return "PLAYING " + Convert.ToBase64String(Game.GameSet.BlackCards[Game.GameSet.BlackCardIndex[Game.CurrentBlackCard]].ToByteArray()) + " " + Game.Round;
                 case 'V':
                     return "VOTING " + Convert.ToBase64String(Game.AnswersToByteArray());
                 case 'E':
@@ -578,13 +591,13 @@ namespace JoePitt.Cards.Net
             }
             else
             {
-
+                byte[] bytes = new byte[0];
                 using (MemoryStream stream = new MemoryStream())
                 {
-                    formatter.Serialize(stream, thisPlayer.WhiteCards);
-                    byte[] cardsArray = stream.ToArray();
-                    return Convert.ToBase64String(cardsArray);
+                    Program.Formatter.Serialize(stream, thisPlayer.WhiteCards);
+                    bytes = stream.ToArray();
                 }
+                return Convert.ToBase64String(bytes);
             }
         }
 
@@ -695,7 +708,7 @@ namespace JoePitt.Cards.Net
                         using (MemoryStream stream = new MemoryStream(voteIn))
                         {
                             stream.Position = 0;
-                            Vote thisVote = (Vote)formatter.Deserialize(stream);
+                            Vote thisVote = (Vote)Program.Formatter.Deserialize(stream);
                             if (thisVote.Choice.BlackCard != Game.GameSet.BlackCards[Game.GameSet.BlackCardIndex[Game.CurrentBlackCard]])
                             {
                                 serverText = "ERROR";
@@ -706,18 +719,17 @@ namespace JoePitt.Cards.Net
                                 serverText = "SUBMITTED";
                             }
                         }
-
                         break;
                     }
                     i++;
                 }
                 if (serverText != "SUBMITTED")
                 {
-                    byte[] test = Convert.FromBase64String(ClientTexts[1]);
-                    using (MemoryStream stream = new MemoryStream(test))
+                    byte[] voteBytes = Convert.FromBase64String(ClientTexts[1]);
+                    using (MemoryStream stream = new MemoryStream(voteBytes))
                     {
                         stream.Position = 0;
-                        Game.Votes.Add((Vote)formatter.Deserialize(stream));
+                        Game.Votes.Add((Vote)Program.Formatter.Deserialize(stream));
                         serverText = "SUBMITTED";
                     }
                 }
@@ -814,10 +826,11 @@ namespace JoePitt.Cards.Net
         public void Close()
         {
             ListenerUp = false;
-            foreach (TcpClient thisClient in ClientTcpClients)
+            foreach (Socket thisClient in ClientTcpClients)
             {
                 thisClient.Close();
             }
+            tcpListener.Stop();
             Game.NetworkUp = false;
             DropUPNP();
             Dispose();
@@ -833,6 +846,7 @@ namespace JoePitt.Cards.Net
                 mappings.Remove(Port, "TCP");
             }
             catch (System.Runtime.InteropServices.COMException) { }
+            catch (System.IO.FileNotFoundException) { }
         }
 
         #region IDisposable Support

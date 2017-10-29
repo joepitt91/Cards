@@ -7,78 +7,60 @@ namespace JoePitt.Cards.Net
 {
     internal static class SharedNetworking
     {
-        public static byte[] Receive(TcpClient Client)
+        public static byte[] GetBytes(Socket receiver)
         {
             try
             {
-                int bytesRead = 0;
-                int length = 0;
-                byte[] buffer = new byte[4];
-                NetworkStream stream = Client.GetStream();
-                while (bytesRead < 4)
+                byte[] message = new byte[4];
+                receiver.Receive(message);
+                int length = BitConverter.ToInt32(message, 0);
+                if (receiver.ReceiveBufferSize < length)
                 {
-                    buffer[bytesRead] = (byte)stream.ReadByte();
-                    bytesRead++;
+                    receiver.ReceiveBufferSize = length;
                 }
-                length = BitConverter.ToInt32(buffer, 0);
-                buffer = new byte[length];
-
-                bytesRead = 0;
-                while (bytesRead < length)
+                message = new byte[length];
+                int received = receiver.Receive(message, 0, length, SocketFlags.None);
+                while (received < length)
                 {
-                    buffer[bytesRead] = (byte)stream.ReadByte();
-                    bytesRead++;
+                    System.Media.SystemSounds.Beep.Play();
+                    received = received + receiver.Receive(message, received, length - received, SocketFlags.None);
                 }
-                return buffer;
+                return message;
             }
-            catch (IOException)
+            catch (SocketException)
             {
                 return new byte[0];
             }
         }
 
-        public static string ReceiveString(TcpClient Client)
+        public static string GetString(Socket receiver)
         {
-            string message = Encoding.Default.GetString(Receive(Client));
-            return message;
+            byte[] message = GetBytes(receiver);
+            return Encoding.Default.GetString(message).Trim('\0').Replace(Environment.NewLine, "");
         }
 
-        public static bool Send(TcpClient Client, string Message)
+        public static bool SendBytes(Socket sender, byte[] message)
         {
-            byte[] messageBytes = Encoding.Default.GetBytes(Message);
-            return Send(Client, messageBytes);
-        }
-
-        public static bool Send(TcpClient Client, byte[] Message)
-        {
-            int bytesSend = 0;
-            int length = Message.Length;
-            byte[] buffer = BitConverter.GetBytes(length);
             try
             {
-                if (Client.Connected)
+                sender.Send(BitConverter.GetBytes(message.Length));
+                if (sender.SendBufferSize < message.Length)
                 {
-                    NetworkStream stream = Client.GetStream();
-                    while (bytesSend < 4)
-                    {
-                        stream.WriteByte(buffer[bytesSend]);
-                        bytesSend++;
-                    }
-
-                    bytesSend = 0;
-                    while (bytesSend < length)
-                    {
-                        stream.WriteByte(Message[bytesSend]);
-                        bytesSend++;
-                    }
-                    return true;
+                    sender.SendBufferSize = message.Length;
                 }
-                return false;
+                sender.Send(message);
+                return true;
             }
-            catch (IOException)
+            catch (SocketException)
             {
                 return false;
             }
+        }
+
+        public static bool SendString(Socket sender, string message)
+        {
+            byte[] encodedMessage = Encoding.Default.GetBytes(message);
+            return SendBytes(sender, encodedMessage);
         }
     }
 }
