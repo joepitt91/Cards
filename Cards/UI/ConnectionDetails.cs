@@ -88,6 +88,7 @@ namespace JoePitt.Cards.UI
             updater.RunWorkerAsync();
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private void TestConnection(object state)
         {
             string portCheckID = Program.CurrentGame.HostNetwork.PortCheckID.ToString();
