@@ -55,10 +55,10 @@ namespace JoePitt.Cards.UI
 
             if (game.GameType != 'J')
             {
-                treDebug.Nodes[0].Nodes["ServerNetworking"].Nodes.Add("Connection Strings");
+                treDebug.Nodes[0].Nodes["ServerNetworking"].Nodes.Add("DetectedIPs", "Detected IPs");
                 foreach (Net.ConnectionDetails ConnectionString in game.HostNetwork.ConnectionStrings)
                 {
-                    treDebug.Nodes[0].Nodes["ServerNetworking"].Nodes[0].Nodes.Add(ConnectionString.IP.ToString() + ":" + ConnectionString.Port);
+                    treDebug.Nodes[0].Nodes["ServerNetworking"].Nodes[0].Nodes.Add("IP", ConnectionString.IP.ToString());
                 }
                 treDebug.Nodes[0].Nodes["ServerNetworking"].Nodes.Add("Port", "Port: " + game.HostNetwork.Port);
             }
@@ -193,7 +193,7 @@ namespace JoePitt.Cards.UI
             }
             treDebug.SelectedNode = treDebug.Nodes[0];
             CheckAllNodes(treDebug.Nodes, true);
-            CheckChildren(treDebug.Nodes[0].Nodes["ServerNetworking"].Nodes["Connection Strings"], false);
+            CheckChildren(treDebug.Nodes[0].Nodes["ServerNetworking"].Nodes["DetectedIPs"], false);
         }
 
         /// <summary>
@@ -231,9 +231,9 @@ namespace JoePitt.Cards.UI
         /// Save the BugReport.
         /// </summary>
         /// <returns>If the bug report was saved.</returns>
-        private bool Export()
+        public void Export()
         {
-            XElement rootElement = new XElement("Game", CreateXmlElement(treDebug.Nodes[0].Nodes));
+            XElement rootElement = new XElement("CardsDebugReport", CreateXmlElement(treDebug.Nodes));
             XDocument document = new XDocument(rootElement);
             SaveFileDialog xmlSave = new SaveFileDialog()
             {
@@ -247,9 +247,7 @@ namespace JoePitt.Cards.UI
             if (xmlSave.ShowDialog() == DialogResult.OK)
             {
                 document.Save(xmlSave.FileName);
-                return false;
             }
-            return false;
         }
 
         /// <summary>
