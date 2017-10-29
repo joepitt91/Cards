@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace JoePitt.Cards
@@ -32,9 +33,9 @@ namespace JoePitt.Cards
         /// The Session Key of this instance of Cards.
         /// </summary>
         static public string SessionKey { get; set; }
-        /// <summary>
-        /// The Last round that the winners prompt was shown for.
-        /// </summary>
+
+        static public BinaryFormatter Formatter { get; set; }
+        
         static private int ShownWinners { get; set; }
         static private Waiting waiting;
 
@@ -72,7 +73,7 @@ namespace JoePitt.Cards
                 }
             }
             catch { }
-
+            Formatter = new BinaryFormatter();
             NewGame:
             if (Setup())
             {
@@ -93,7 +94,6 @@ namespace JoePitt.Cards
                     {
                         case "WAITING":
                             CurrentGame.Stage = 'W';
-                            Wait();
                             break;
                         case "PLAYING":
                             CurrentGame.Stage = 'P';
@@ -121,9 +121,8 @@ namespace JoePitt.Cards
                             break;
                     }
                 }
-                CurrentGame.Stop();
+                Application.Restart();
             }
-            Exit();
         }
 
         static public void Init()
@@ -149,12 +148,6 @@ namespace JoePitt.Cards
                 return true;
             }
             else return false;
-        }
-
-        static private void Wait()
-        {
-            waiting.Update("Waiting for other players to join the game...");
-            waiting.ShowDialog();
         }
 
         static private void Play()
@@ -261,12 +254,12 @@ namespace JoePitt.Cards
             CurrentPlayer.NewResponse = false;
             try
             {
-                BinaryFormatter formatter = new BinaryFormatter();
-                byte[] test = Convert.FromBase64String(response[0]);
-                using (MemoryStream stream = new MemoryStream(test))
+
+                byte[] winnersBytes = Convert.FromBase64String(response[0]);
+                using (MemoryStream stream = new MemoryStream(winnersBytes))
                 {
                     stream.Position = 0;
-                    CurrentGame.Winners = (List<Answer>)formatter.Deserialize(stream);
+                    CurrentGame.Winners = (List<Answer>)Formatter.Deserialize(stream);
                 }
                 string message = "";
                 if (CurrentGame.Winners.Count > 1)
@@ -304,12 +297,12 @@ namespace JoePitt.Cards
             CurrentPlayer.NewResponse = false;
             try
             {
-                BinaryFormatter formatter = new BinaryFormatter();
-                byte[] test = Convert.FromBase64String(response[0]);
-                using (MemoryStream stream = new MemoryStream(test))
+
+                byte[] winnersBytes = Convert.FromBase64String(response[0]);
+                using (MemoryStream stream = new MemoryStream(winnersBytes))
                 {
                     stream.Position = 0;
-                    CurrentGame.Winners = (List<Answer>)formatter.Deserialize(stream);
+                    CurrentGame.Winners = (List<Answer>)Formatter.Deserialize(stream);
                 }
                 string message = "";
                 if (CurrentGame.Winners.Count > 1)
@@ -362,12 +355,15 @@ namespace JoePitt.Cards
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Exception ex = (Exception)e.ExceptionObject;
-            string Error = "FATAL ERROR" + Environment.NewLine + Environment.NewLine +
-                ex.Message + Environment.NewLine + Environment.NewLine +
-                ex.Data + Environment.NewLine + Environment.NewLine +
-                ex.StackTrace;
-            MessageBox.Show(Error);
-            Application.Restart();
+            string Error = "Cards will exit due to a fatal error from which it cannot recover. " +
+                "If this happens again, please report it to the developer with: " +
+                "Where you were in the game, and the below technical details" +
+                Environment.NewLine + Environment.NewLine +
+                "Error Message: " + ex.Message + Environment.NewLine + Environment.NewLine +
+                "Additional Data: " + Environment.NewLine + ex.Data + Environment.NewLine + Environment.NewLine +
+                "Stack Trace: " + Environment.NewLine + ex.StackTrace;
+            MessageBox.Show(Error, "FATAL ERROR", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+            Application.Exit();
         }
     }
 }

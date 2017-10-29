@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -60,11 +59,11 @@ namespace JoePitt.Cards.UI
             Program.CurrentPlayer.NewResponse = false;
             if (response[0] == "PLAYING")
             {
-                BinaryFormatter formatter = new BinaryFormatter();
+
                 using (MemoryStream stream = new MemoryStream(Convert.FromBase64String(response[1])))
                 {
                     stream.Position = 0;
-                    BlackCard = (Card)formatter.Deserialize(stream);
+                    BlackCard = (Card)Program.Formatter.Deserialize(stream);
                 }
                 txtBlackCard.Text = BlackCard.ToString + Environment.NewLine;
                 string blankRegEx = "_{3,}";
@@ -93,7 +92,7 @@ namespace JoePitt.Cards.UI
                     using (MemoryStream stream = new MemoryStream(Convert.FromBase64String(cards)))
                     {
                         stream.Position = 0;
-                        Program.CurrentPlayer.Owner.WhiteCards = (List<Card>)formatter.Deserialize(stream);
+                        Program.CurrentPlayer.Owner.WhiteCards = (List<Card>)Program.Formatter.Deserialize(stream);
                     }
                 }
                 catch (SerializationException ex)
@@ -149,7 +148,7 @@ namespace JoePitt.Cards.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void cmbWhiteCard_SelectedIndexChanged(object sender, EventArgs e)
+        private void WhiteCard_SelectedIndexChanged(object sender, EventArgs e)
         {
             txtWhiteCard.Text = cmbWhiteCard.SelectedItem.ToString();
             if (cmbWhiteCard.SelectedIndex == cmbWhiteCard2.SelectedIndex)
@@ -170,7 +169,7 @@ namespace JoePitt.Cards.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void cmbWhiteCard2_SelectedIndexChanged(object sender, EventArgs e)
+        private void WhiteCard2_SelectedIndexChanged(object sender, EventArgs e)
         {
             txtWhiteCard2.Text = cmbWhiteCard2.SelectedItem.ToString();
             if (cmbWhiteCard.SelectedIndex == cmbWhiteCard2.SelectedIndex)
@@ -186,7 +185,7 @@ namespace JoePitt.Cards.UI
             }
         }
 
-        private void btnLeaderboard_Click(object sender, EventArgs e)
+        private void ToggleLeaderboard_Click(object sender, EventArgs e)
         {
             if (Program.LeaderBoard.Visible)
             {
@@ -200,8 +199,9 @@ namespace JoePitt.Cards.UI
             }
         }
 
-        private void btnSubmit_Click(object sender, EventArgs e)
+        private void Submit_Click(object sender, EventArgs e)
         {
+            Enabled = false;
             Answer myAnswer;
             if (BlackCard.Needs == 1)
             {
@@ -232,16 +232,20 @@ namespace JoePitt.Cards.UI
                     Program.Exit();
                 }
             }
+            else
+            {
+                Enabled = true;
+            }
         }
 
-        private void btnRules_Click(object sender, EventArgs e)
+        private void OpenRules_Click(object sender, EventArgs e)
         {
             Rules rules = new Rules();
             rules.ShowDialog();
             rules.Dispose();
         }
 
-        private void btnLicense_Click(object sender, EventArgs e)
+        private void OpenLicense_Click(object sender, EventArgs e)
         {
             License license = new License();
             license.ShowDialog();

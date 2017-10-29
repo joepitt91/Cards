@@ -115,7 +115,7 @@
             this.cmbWhiteCard.Name = "cmbWhiteCard";
             this.cmbWhiteCard.Size = new System.Drawing.Size(298, 22);
             this.cmbWhiteCard.TabIndex = 1;
-            this.cmbWhiteCard.SelectedIndexChanged += new System.EventHandler(this.cmbWhiteCard_SelectedIndexChanged);
+            this.cmbWhiteCard.SelectedIndexChanged += new System.EventHandler(this.WhiteCard_SelectedIndexChanged);
             // 
             // picWhiteCard2
             // 
@@ -155,7 +155,7 @@
             this.cmbWhiteCard2.Name = "cmbWhiteCard2";
             this.cmbWhiteCard2.Size = new System.Drawing.Size(298, 21);
             this.cmbWhiteCard2.TabIndex = 3;
-            this.cmbWhiteCard2.SelectedIndexChanged += new System.EventHandler(this.cmbWhiteCard2_SelectedIndexChanged);
+            this.cmbWhiteCard2.SelectedIndexChanged += new System.EventHandler(this.WhiteCard2_SelectedIndexChanged);
             // 
             // btnLeaderboard
             // 
@@ -166,7 +166,7 @@
             this.btnLeaderboard.TabIndex = 6;
             this.btnLeaderboard.Text = "Show/Hide &Leaderboard";
             this.btnLeaderboard.UseVisualStyleBackColor = true;
-            this.btnLeaderboard.Click += new System.EventHandler(this.btnLeaderboard_Click);
+            this.btnLeaderboard.Click += new System.EventHandler(this.ToggleLeaderboard_Click);
             // 
             // picBlankCard
             // 
@@ -187,7 +187,7 @@
             this.btnSubmit.TabIndex = 5;
             this.btnSubmit.Text = "&Submit";
             this.btnSubmit.UseVisualStyleBackColor = true;
-            this.btnSubmit.Click += new System.EventHandler(this.btnSubmit_Click);
+            this.btnSubmit.Click += new System.EventHandler(this.Submit_Click);
             // 
             // btnRules
             // 
@@ -198,7 +198,7 @@
             this.btnRules.TabIndex = 7;
             this.btnRules.Text = "Show &Rules";
             this.btnRules.UseVisualStyleBackColor = true;
-            this.btnRules.Click += new System.EventHandler(this.btnRules_Click);
+            this.btnRules.Click += new System.EventHandler(this.OpenRules_Click);
             // 
             // btnLicense
             // 
@@ -209,7 +209,7 @@
             this.btnLicense.TabIndex = 8;
             this.btnLicense.Text = "Show Li&cense";
             this.btnLicense.UseVisualStyleBackColor = true;
-            this.btnLicense.Click += new System.EventHandler(this.btnLicense_Click);
+            this.btnLicense.Click += new System.EventHandler(this.OpenLicense_Click);
             // 
             // lblRound
             // 

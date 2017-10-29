@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Diagnostics;
 
 namespace JoePitt.Cards
@@ -53,14 +52,15 @@ namespace JoePitt.Cards
         /// Exports the card as a byte array.
         /// </summary>
         /// <returns>A byte array of the Card.</returns>
-        public byte[] ToArray()
+        public byte[] ToByteArray()
         {
-            BinaryFormatter formatter = new BinaryFormatter();
+            byte[] bytes = new byte[0];
             using (MemoryStream stream = new MemoryStream())
             {
-                formatter.Serialize(stream, this);
-                return stream.ToArray();
+                Program.Formatter.Serialize(stream, this);
+                bytes = stream.ToArray();
             }
+            return bytes;
         }
     }
 }

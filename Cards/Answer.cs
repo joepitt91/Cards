@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace JoePitt.Cards
@@ -44,12 +44,9 @@ namespace JoePitt.Cards
         /// <exception cref="ArgumentNullException">A required parameter is missing.</exception>
         public Answer(Player submitter, Card blackCard, Card whiteCard)
         {
-            if (submitter == null) { throw new ArgumentNullException("submitter"); }
-            if (blackCard == null) { throw new ArgumentNullException("blackCard"); }
-            if (whiteCard == null) { throw new ArgumentNullException("whiteCard"); }
-            Submitter = submitter;
-            BlackCard = blackCard;
-            WhiteCard = whiteCard;
+            Submitter = submitter ?? throw new ArgumentNullException("submitter");
+            BlackCard = blackCard ?? throw new ArgumentNullException("blackCard");
+            WhiteCard = whiteCard ?? throw new ArgumentNullException("whiteCard");
             ToString = BlackCard.ToString;
             Regex regexr = new Regex(blankRegEx);
             if (regexr.IsMatch(ToString))
@@ -72,14 +69,10 @@ namespace JoePitt.Cards
         /// <exception cref="ArgumentNullException">A required parameter is missing.</exception>
         public Answer(Player submitter, Card blackCard, Card whiteCard, Card whiteCard2)
         {
-            if (submitter == null) { throw new ArgumentNullException("submitter"); }
-            if (blackCard == null) { throw new ArgumentNullException("blackCard"); }
-            if (whiteCard == null) { throw new ArgumentNullException("whiteCard"); }
-            if (whiteCard2 == null) { throw new ArgumentNullException("whiteCard2"); }
-            Submitter = submitter;
-            BlackCard = blackCard;
-            WhiteCard = whiteCard;
-            WhiteCard2 = whiteCard2;
+            Submitter = submitter ?? throw new ArgumentNullException("submitter");
+            BlackCard = blackCard ?? throw new ArgumentNullException("blackCard");
+            WhiteCard = whiteCard ?? throw new ArgumentNullException("whiteCard");
+            WhiteCard2 = whiteCard2 ?? throw new ArgumentNullException("whiteCard2");
             ToString = BlackCard.ToString;
             string blankRegEx = "_{3,}";
             Regex regexr = new Regex(blankRegEx);
@@ -101,26 +94,40 @@ namespace JoePitt.Cards
             }
         }
 
-
+        /// <summary>
+        /// Deserialise Answer.
+        /// </summary>
+        /// <param name="SerialisedAnswer">The Serialised Answer.</param>
         public Answer(byte[] SerialisedAnswer)
         {
-            BinaryFormatter formatter = new BinaryFormatter();
-            MemoryStream stream = new MemoryStream(SerialisedAnswer);
-            Answer imported = (Answer)formatter.Deserialize(stream);
-            Submitter = imported.Submitter;
-            BlackCard = imported.BlackCard;
-            WhiteCard = imported.WhiteCard;
-            WhiteCard2 = imported.WhiteCard2;
-            ToString = imported.ToString;
+            using (MemoryStream stream = new MemoryStream(SerialisedAnswer)
+            {
+                Position = 0
+            })
+            {
+                Answer imported = (Answer)Program.Formatter.Deserialize(stream);
+                Submitter = imported.Submitter;
+                BlackCard = imported.BlackCard;
+                WhiteCard = imported.WhiteCard;
+                WhiteCard2 = imported.WhiteCard2;
+                ToString = imported.ToString;
+            }
         }
 
-
+        /// <summary>
+        /// Convert the Answer to a Byte Array.
+        /// </summary>
+        /// <returns>The Serialised Byte Array.</returns>
         public byte[] ToByteArray()
         {
-            BinaryFormatter formatter = new BinaryFormatter();
-            MemoryStream stream = new MemoryStream();
-            formatter.Serialize(stream, this);
-            return stream.ToArray();
+            byte[] bytes = new byte[0];
+            using (MemoryStream stream = new MemoryStream())
+            {
+                Program.Formatter.Serialize(stream, this);
+                stream.Position = 0;
+                bytes = stream.ToArray();
+            }
+            return bytes;
         }
     }
 }

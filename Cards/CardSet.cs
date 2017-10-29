@@ -188,5 +188,17 @@ namespace JoePitt.Cards
             Dealer.ShuffleCards(BlackCardIndex);
             Dealer.ShuffleCards(WhiteCardIndex);
         }
+
+        public byte[] ToByteArray()
+        {
+            byte[] bytes = new byte[0];
+            using (MemoryStream stream = new MemoryStream())
+            {
+                Program.Formatter.Serialize(stream, this);
+                stream.Position = 0;
+                bytes = stream.ToArray();
+            }
+            return bytes;
+        }
     }
 }

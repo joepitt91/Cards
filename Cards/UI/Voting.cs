@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows.Forms;
 
 namespace JoePitt.Cards.UI
@@ -74,11 +73,11 @@ namespace JoePitt.Cards.UI
             Program.CurrentPlayer.NewResponse = false;
             if (response[0] == "VOTING")
             {
-                BinaryFormatter formatter = new BinaryFormatter();
+                
                 using (MemoryStream stream = new MemoryStream(Convert.FromBase64String(response[1])))
                 {
                     stream.Position = 0;
-                    Program.CurrentGame.Answers = (List<Answer>)formatter.Deserialize(stream);
+                    Program.CurrentGame.Answers = (List<Answer>)Program.Formatter.Deserialize(stream);
                 }
             }
 
@@ -103,6 +102,7 @@ namespace JoePitt.Cards.UI
         private void btnVote_Click(object sender, EventArgs e)
         {
             //cast vote
+            Enabled = false;
             if (cmbAnswers.SelectedIndex != -1)
             {
                 Vote myVote = new Vote(Program.CurrentPlayer.Owner, Program.CurrentGame.Answers[cmbAnswers.SelectedIndex]);
@@ -136,6 +136,7 @@ namespace JoePitt.Cards.UI
             else
             {
                 MessageBox.Show("Select an answer.", "No Answer Chosen", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Enabled = true;
             }
         }
     }

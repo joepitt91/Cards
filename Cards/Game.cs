@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows.Forms;
 
 namespace JoePitt.Cards
@@ -26,11 +25,16 @@ namespace JoePitt.Cards
         /// <summary>
         /// The hosting network provider, for hosted games.
         /// </summary>
-        public ServerNetworking HostNetwork { get; private set; }
+        
+        public ServerNetworking HostNetwork { get { return HostNetworkField; } private set { HostNetworkField = value; } }
+        [NonSerialized]
+        private ServerNetworking HostNetworkField;
         /// <summary>
         /// All the client networking proviers for this instance.
         /// </summary>
-        public List<ClientNetworking> LocalPlayers { get; set; }
+        public List<ClientNetworking> LocalPlayers { get { return LocalPlayersField; } set { LocalPlayersField = value; } }
+        [NonSerialized]
+        private List<ClientNetworking> LocalPlayersField;
         /// <summary>
         /// If networking is up and running.
         /// </summary>
@@ -320,11 +324,11 @@ namespace JoePitt.Cards
                 }
                 string response = Program.CurrentPlayer.LastResponse;
                 Program.CurrentPlayer.NewResponse = false;
-                BinaryFormatter formatter = new BinaryFormatter();
+
                 using (MemoryStream stream = new MemoryStream(Convert.FromBase64String(response)))
                 {
                     stream.Position = 0;
-                    GameSet = (CardSet)formatter.Deserialize(stream);
+                    GameSet = (CardSet)Program.Formatter.Deserialize(stream);
                 }
                 Playable = true;
                 return true;
@@ -546,12 +550,14 @@ namespace JoePitt.Cards
         /// <returns>The Binary Representation of the Submitted Answers.</returns>
         public byte[] AnswersToByteArray()
         {
-            BinaryFormatter formatter = new BinaryFormatter();
+            byte[] bytes = new byte[0];
             using (MemoryStream stream = new MemoryStream())
             {
-                formatter.Serialize(stream, Answers);
-                return stream.ToArray();
+                stream.Position = 0;
+                Program.Formatter.Serialize(stream, Answers);
+                bytes = stream.ToArray();
             }
+            return bytes;
         }
 
         /// <summary>
@@ -560,12 +566,13 @@ namespace JoePitt.Cards
         /// <returns>The Binary Representation of the Winners List.</returns>
         public byte[] WinnersToByteArray()
         {
-            BinaryFormatter formatter = new BinaryFormatter();
+            byte[] bytes = new byte[0];
             using (MemoryStream stream = new MemoryStream())
             {
-                formatter.Serialize(stream, Winners);
-                return stream.ToArray();
+                Program.Formatter.Serialize(stream, Winners);
+                bytes = stream.ToArray();
             }
+            return bytes;
         }
     }
 }

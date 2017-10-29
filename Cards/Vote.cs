@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace JoePitt.Cards
 {
@@ -36,12 +35,13 @@ namespace JoePitt.Cards
         /// <returns>The byte array of the Vote.</returns>
         public byte[] ToByteArray()
         {
-            BinaryFormatter formatter = new BinaryFormatter();
+            byte[] bytes = new byte[0];
             using (MemoryStream stream = new MemoryStream())
             {
-                formatter.Serialize(stream, this);
-                return stream.ToArray();
+                Program.Formatter.Serialize(stream, this);
+                bytes = stream.ToArray();
             }
+            return bytes;
         }
     }
 }
