@@ -59,7 +59,7 @@ namespace JoePitt.Cards.UI
             }
         }
 
-        private void New_Load(object sender, EventArgs e)
+        private void NewGame_Load(object sender, EventArgs e)
         {
             // Add Card Sets.
             chkCardSetsHost.Items.Clear();
@@ -109,12 +109,12 @@ namespace JoePitt.Cards.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void btnStartLocal_Click(object sender, EventArgs e)
+        private void StartLocal_Click(object sender, EventArgs e)
         {
             if (lstPlayersLocal.Items.Count > 0)
             {
                 // Prevent Changes
-                tabsType.Enabled = false;
+                Enabled = false;
                 // Save Settings
                 StringCollection cardPacks = new StringCollection();
                 foreach (string set in chkCardSetsLocal.CheckedItems)
@@ -144,9 +144,11 @@ namespace JoePitt.Cards.UI
                     {
                         if (!player.Name.ToLower().StartsWith("[bot]"))
                         {
-                            ClientNetworking playerNetwork = new ClientNetworking(player, "127.0.0.1", Program.CurrentGame.HostNetwork.Port);
-                            playerNetwork.NextCommand = "JOIN " + player.Name.Replace(' ', '_') + " " + Program.SessionKey;
-                            playerNetwork.NewCommand = true;
+                            ClientNetworking playerNetwork = new ClientNetworking(player, "127.0.0.1", Program.CurrentGame.HostNetwork.Port)
+                            {
+                                NextCommand = "JOIN " + player.Name.Replace(' ', '_') + " " + Program.SessionKey,
+                                NewCommand = true
+                            };
                             while (!playerNetwork.NewResponse)
                             {
                                 Application.DoEvents();
@@ -163,7 +165,7 @@ namespace JoePitt.Cards.UI
                 }
                 else
                 {
-                    tabsType.Enabled = true;
+                    Enabled = true;
                 }
             }
             else
@@ -172,7 +174,7 @@ namespace JoePitt.Cards.UI
             }
         }
 
-        private void btnAddPlayerLocal_Click(object sender, EventArgs e)
+        private void AddPlayerLocal_Click(object sender, EventArgs e)
         {
             if (txtAddPlayerLocal.Text.Length > 0)
             {
@@ -189,7 +191,7 @@ namespace JoePitt.Cards.UI
             }
         }
 
-        private void btnRemovePlayerLocal_Click(object sender, EventArgs e)
+        private void RemovePlayerLocal_Click(object sender, EventArgs e)
         {
             if (lstPlayersLocal.SelectedIndex != -1)
             {
@@ -197,28 +199,31 @@ namespace JoePitt.Cards.UI
             }
         }
 
+        // Host Game
+
         /// <summary>
         /// Start hosting a game.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "NoName")]
-        private void btnStartHost_Click(object sender, EventArgs e)
+        private void StartHost_Click(object sender, EventArgs e)
         {
             // Prevent Changes
-            tabsType.Enabled = false;
+            Enabled = false;
 
             if (string.IsNullOrEmpty(txtPlayerNameHost.Text))
             {
                 MessageBox.Show("NoName");
-                tabsType.Enabled = true;
+                Enabled = true;
                 return;
             }
 
             if (txtPlayerNameHost.Text.ToLower().StartsWith("[bot]"))
             {
-                MessageBox.Show("Bot");
-                tabsType.Enabled = true;
+                MessageBox.Show("Sorry, you cannot be a bot too.", "Invalid Username", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Enabled = true;
                 return;
             }
 
@@ -235,8 +240,10 @@ namespace JoePitt.Cards.UI
             Properties.Settings.Default.Rebooting = chkRebootingTheUniverseHost.Checked;
             Properties.Settings.Default.Save();
 
-            List<string> players = new List<string>();
-            players.Add(txtPlayerNameHost.Text);
+            List<string> players = new List<string>
+            {
+                txtPlayerNameHost.Text
+            };
             int i = 0;
             while (i < (int)numPlayersHost.Value)
             {
@@ -252,13 +259,17 @@ namespace JoePitt.Cards.UI
             Program.CurrentGame = new Game('H', players);
             if (Program.CurrentGame.Playable)
             {
-                ClientNetworking playerNetwork = new ClientNetworking(Program.CurrentGame.Players[0], "127.0.0.1", Program.CurrentGame.HostNetwork.Port);
-                playerNetwork.NextCommand = "JOIN " + txtPlayerNameHost.Text.Replace(' ', '_') + " " + Program.SessionKey;
-                playerNetwork.NewCommand = true;
+                ClientNetworking playerNetwork = new ClientNetworking(Program.CurrentGame.Players[0], "127.0.0.1", Program.CurrentGame.HostNetwork.Port)
+                {
+                    NextCommand = "JOIN " + txtPlayerNameHost.Text.Replace(' ', '_') + " " + Program.SessionKey,
+                    NewCommand = true
+                };
+
                 while (!playerNetwork.NewResponse)
                 {
                     Application.DoEvents();
                 }
+
                 if (playerNetwork.LastResponse == "SUCCESS")
                 {
                     playerNetwork.NewResponse = false;
@@ -270,23 +281,25 @@ namespace JoePitt.Cards.UI
                 }
                 else
                 {
-                    tabsType.Enabled = true;
+                    Enabled = true;
                 }
             }
             else
             {
-                tabsType.Enabled = true;
+                Enabled = true;
             }
         }
+
+        // Join Game
 
         /// <summary>
         /// Join a hosted game.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void btnStartJoin_Click(object sender, EventArgs e)
+        private void StartJoin_Click(object sender, EventArgs e)
         {
-            tabsType.Enabled = false;
+            Enabled = false;
             string IPv4 = "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
             string IPv6 = "^(?:[a-fA-F0-9]{1,4}:|:){7}[a-fA-F0-9]{1,4}$";
 
@@ -295,8 +308,10 @@ namespace JoePitt.Cards.UI
 
             if (isIPv4 || isIPv6)
             {
-                List<string> players = new List<string>();
-                players.Add(txtPlayerNameJoin.Text);
+                List<string> players = new List<string>
+                {
+                    txtPlayerNameJoin.Text
+                };
                 Program.CurrentGame = new Game('J', players);
                 if (Program.CurrentGame.Join(txtIPJoin.Text, (int)numPortJoin.Value))
                 {
@@ -305,24 +320,26 @@ namespace JoePitt.Cards.UI
                 }
                 else
                 {
-                    tabsType.Enabled = true;
+                    Enabled = true;
                 }
             }
             else
             {
                 MessageBox.Show("IP Address is not valid, must be an IPv4 or IPv6 address.", "Bad Host", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                tabsType.Enabled = true;
+                Enabled = true;
             }
         }
 
-        private void rulesToolStripMenuItem_Click(object sender, EventArgs e)
+        // Context Menu Items
+
+        private void RulesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Rules rules = new Rules();
             rules.ShowDialog();
             rules.Dispose();
         }
 
-        private void licenseToolStripMenuItem_Click(object sender, EventArgs e)
+        private void LicenseToolStripMenuItem_Click(object sender, EventArgs e)
         {
             License license = new License();
             license.ShowDialog();

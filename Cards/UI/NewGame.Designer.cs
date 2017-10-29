@@ -142,7 +142,7 @@
             this.btnStartLocal.TabIndex = 14;
             this.btnStartLocal.Text = "Start Local Game";
             this.btnStartLocal.UseVisualStyleBackColor = true;
-            this.btnStartLocal.Click += new System.EventHandler(this.btnStartLocal_Click);
+            this.btnStartLocal.Click += new System.EventHandler(this.StartLocal_Click);
             // 
             // lblBotsHintLocal
             // 
@@ -163,7 +163,7 @@
             this.btnRemovePlayerLocal.TabIndex = 12;
             this.btnRemovePlayerLocal.Text = "Remove";
             this.btnRemovePlayerLocal.UseVisualStyleBackColor = true;
-            this.btnRemovePlayerLocal.Click += new System.EventHandler(this.btnRemovePlayerLocal_Click);
+            this.btnRemovePlayerLocal.Click += new System.EventHandler(this.RemovePlayerLocal_Click);
             // 
             // btnAddPlayerLocal
             // 
@@ -174,7 +174,7 @@
             this.btnAddPlayerLocal.TabIndex = 11;
             this.btnAddPlayerLocal.Text = "Add";
             this.btnAddPlayerLocal.UseVisualStyleBackColor = true;
-            this.btnAddPlayerLocal.Click += new System.EventHandler(this.btnAddPlayerLocal_Click);
+            this.btnAddPlayerLocal.Click += new System.EventHandler(this.AddPlayerLocal_Click);
             // 
             // txtAddPlayerLocal
             // 
@@ -340,7 +340,7 @@
             this.btnStartHost.TabIndex = 9;
             this.btnStartHost.Text = "Start Hosting Game";
             this.btnStartHost.UseVisualStyleBackColor = true;
-            this.btnStartHost.Click += new System.EventHandler(this.btnStartHost_Click);
+            this.btnStartHost.Click += new System.EventHandler(this.StartHost_Click);
             // 
             // chkRebootingTheUniverseHost
             // 
@@ -555,7 +555,7 @@
             this.btnStartJoin.TabIndex = 31;
             this.btnStartJoin.Text = "Join Game";
             this.btnStartJoin.UseVisualStyleBackColor = true;
-            this.btnStartJoin.Click += new System.EventHandler(this.btnStartJoin_Click);
+            this.btnStartJoin.Click += new System.EventHandler(this.StartJoin_Click);
             // 
             // numPortJoin
             // 
@@ -671,7 +671,7 @@
             this.rulesToolStripMenuItem.Name = "rulesToolStripMenuItem";
             this.rulesToolStripMenuItem.Size = new System.Drawing.Size(93, 22);
             this.rulesToolStripMenuItem.Text = "Rules";
-            this.rulesToolStripMenuItem.Click += new System.EventHandler(this.rulesToolStripMenuItem_Click);
+            this.rulesToolStripMenuItem.Click += new System.EventHandler(this.RulesToolStripMenuItem_Click);
             // 
             // licenseToolStripMenuItem
             // 
@@ -679,7 +679,7 @@
             this.licenseToolStripMenuItem.Name = "licenseToolStripMenuItem";
             this.licenseToolStripMenuItem.Size = new System.Drawing.Size(93, 22);
             this.licenseToolStripMenuItem.Text = "License";
-            this.licenseToolStripMenuItem.Click += new System.EventHandler(this.licenseToolStripMenuItem_Click);
+            this.licenseToolStripMenuItem.Click += new System.EventHandler(this.LicenseToolStripMenuItem_Click);
             // 
             // NewGame
             // 
@@ -698,7 +698,7 @@
             this.Name = "NewGame";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "New Game - Cards";
-            this.Load += new System.EventHandler(this.New_Load);
+            this.Load += new System.EventHandler(this.NewGame_Load);
             this.tabsType.ResumeLayout(false);
             this.tabLocal.ResumeLayout(false);
             this.tabLocal.PerformLayout();
