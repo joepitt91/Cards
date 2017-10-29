@@ -370,7 +370,7 @@ namespace JoePitt.Cards
         {
             Exception ex = (Exception)e.ExceptionObject;
             CrashReport crashReport = new CrashReport(ex);
-            string Error = "Cards has encournered a error from which it cannot recover and will exit." +
+            string Error = "Cards has encountered a error from which it cannot recover and will exit." +
                 Environment.NewLine + Environment.NewLine +
                 "Would you like to report this to the developer?" +
                 Environment.NewLine + Environment.NewLine +
