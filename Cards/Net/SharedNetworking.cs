@@ -1,12 +1,36 @@
 ﻿using System;
-using System.IO;
 using System.Net.Sockets;
 using System.Text;
+using System.Windows.Forms;
 
 namespace JoePitt.Cards.Net
 {
     internal static class SharedNetworking
     {
+        /// <summary>
+        /// Uses the client link to send a command and return the response.
+        /// </summary>
+        /// <param name="client">The Player's Client Networking.</param>
+        /// <param name="Command">The Command to be sent to the game host.</param>
+        /// <returns>The Game host's response.</returns>
+        /// <exception cref="SocketException">The Client's connection to the game host has dropped.</exception>
+        /// <example>Communicate(playerNetwork, "HELLO")</example>
+        public static string Communicate(ClientNetworking client, string Command)
+        {
+            client.NextCommand = Command;
+            client.NewCommand = true;
+            while (!client.NewResponse)
+            {
+                Application.DoEvents();
+                if (client.Established && client.Dropped)
+                {
+                    throw new SocketException();
+                }
+            }
+            client.NewResponse = false;
+            return client.LastResponse;
+        }
+
         public static byte[] GetBytes(Socket receiver)
         {
             try

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Threading;
@@ -35,7 +36,7 @@ namespace JoePitt.Cards
         static public string SessionKey { get; set; }
 
         static public BinaryFormatter Formatter { get; set; }
-        
+
         static private int ShownWinners { get; set; }
         static private Waiting waiting;
 
@@ -81,20 +82,17 @@ namespace JoePitt.Cards
                 {
                     LeaderBoard.UpdateScores();
                     CurrentPlayer = CurrentGame.LocalPlayers[0];
-                    CurrentPlayer.NextCommand = "GAMEUPDATE";
-                    CurrentPlayer.NewCommand = true;
-                    while (!CurrentPlayer.NewResponse)
+                    string fullResponse = "";
+                    try
                     {
-                        Application.DoEvents();
-                        if (CurrentPlayer.Dropped)
-                        {
-                            MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            Application.Restart();
-                            break;
-                        }
+                        fullResponse = SharedNetworking.Communicate(Program.CurrentPlayer, "GAMEUPDATE");
                     }
-                    string[] response = CurrentPlayer.LastResponse.Split(' ');
-                    CurrentPlayer.NewResponse = false;
+                    catch (SocketException)
+                    {
+                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Application.Restart();
+                    }
+                    string[] response = fullResponse.Split(' ');
 
                     switch (response[0])
                     {
@@ -167,20 +165,18 @@ namespace JoePitt.Cards
             foreach (ClientNetworking player in CurrentGame.LocalPlayers)
             {
                 CurrentPlayer = player;
-                CurrentPlayer.NextCommand = "NEED ANSWER";
-                CurrentPlayer.NewCommand = true;
-                while (!CurrentPlayer.NewResponse)
+                string fullResponse = "";
+                try
                 {
-                    Application.DoEvents();
-                    if (CurrentPlayer.Dropped)
-                    {
-                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Application.Restart();
-                        break;
-                    }
+                    fullResponse = SharedNetworking.Communicate(Program.CurrentPlayer, "NEED ANSWER");
                 }
-                string[] responseP = CurrentPlayer.LastResponse.Split(' ');
-                CurrentPlayer.NewResponse = false;
+                catch (SocketException)
+                {
+                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Restart();
+                }
+
+                string[] responseP = fullResponse.Split(' ');
                 switch (responseP[0])
                 {
                     case "YES":
@@ -216,20 +212,17 @@ namespace JoePitt.Cards
             foreach (ClientNetworking player in CurrentGame.LocalPlayers)
             {
                 CurrentPlayer = player;
-                CurrentPlayer.NextCommand = "NEED VOTE";
-                CurrentPlayer.NewCommand = true;
-                while (!CurrentPlayer.NewResponse)
+                string fullResponse = "";
+                try
                 {
-                    Application.DoEvents();
-                    if (CurrentPlayer.Dropped)
-                    {
-                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Application.Restart();
-                        break;
-                    }
+                    fullResponse = SharedNetworking.Communicate(Program.CurrentPlayer, "NEED VOTE");
                 }
-                string[] responseP = CurrentPlayer.LastResponse.Split(' ');
-                CurrentPlayer.NewResponse = false;
+                catch (SocketException)
+                {
+                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Restart();
+                }
+                string[] responseP = fullResponse.Split(' ');
                 switch (responseP[0])
                 {
                     case "YES":
@@ -262,23 +255,19 @@ namespace JoePitt.Cards
         static private void Scores()
         {
             CurrentPlayer = CurrentGame.LocalPlayers[0];
-            CurrentPlayer.NextCommand = "GETWINNER";
-            CurrentPlayer.NewCommand = true;
-            while (!CurrentPlayer.NewResponse)
-            {
-                Application.DoEvents();
-                if (CurrentPlayer.Dropped)
-                {
-                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Application.Restart();
-                    break;
-                }
-            }
-            string[] response = CurrentPlayer.LastResponse.Split(' ');
-            CurrentPlayer.NewResponse = false;
+            string fullResponse = "";
             try
             {
-
+                fullResponse = SharedNetworking.Communicate(Program.CurrentPlayer, "GETWINNER");
+            }
+            catch (SocketException)
+            {
+                MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Application.Restart();
+            }
+            string[] response = fullResponse.Split(' ');
+            try
+            {
                 byte[] winnersBytes = Convert.FromBase64String(response[0]);
                 using (MemoryStream stream = new MemoryStream(winnersBytes))
                 {
@@ -311,20 +300,17 @@ namespace JoePitt.Cards
         static private bool Replay()
         {
             CurrentPlayer = CurrentGame.LocalPlayers[0];
-            CurrentPlayer.NextCommand = "GETWINNER";
-            CurrentPlayer.NewCommand = true;
-            while (!CurrentPlayer.NewResponse)
+            string fullResponse = "";
+            try
             {
-                Application.DoEvents();
-                if (CurrentPlayer.Dropped)
-                {
-                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Application.Restart();
-                    break;
-                }
+                fullResponse = SharedNetworking.Communicate(Program.CurrentPlayer, "GETWINNER");
             }
-            string[] response = CurrentPlayer.LastResponse.Split(' ');
-            CurrentPlayer.NewResponse = false;
+            catch (SocketException)
+            {
+                MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Application.Restart();
+            }
+            string[] response = fullResponse.Split(' ');
             try
             {
 

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Sockets;
 using System.Windows.Forms;
 
 namespace JoePitt.Cards
@@ -225,37 +226,30 @@ namespace JoePitt.Cards
             ClientNetworking playerNetwork;
             playerNetwork = new ClientNetworking(Players[0], address, port);
             LocalPlayers.Add(playerNetwork);
-            playerNetwork.NextCommand = "HELLO";
-            playerNetwork.NewCommand = true;
-            while (!playerNetwork.NewResponse)
+            string ServerHello = "";
+            try
             {
-                Application.DoEvents();
-                if (playerNetwork.Established && playerNetwork.Dropped)
-                {
-                    MessageBox.Show("Failed to Join Game: Connection Dropped.", "Failed to Join", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return false;
-                }
+                ServerHello = SharedNetworking.Communicate(playerNetwork, "HELLO");
             }
-            string ServerHello = playerNetwork.LastResponse;
-            playerNetwork.NewResponse = false;
+            catch (SocketException)
+            {
+                MessageBox.Show("Failed to Join Game: Connection Dropped.", "Failed to Join", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
             string[] ServerDetails = ServerHello.Split(' ');
 
             if (ServerDetails[3] != "0")
             {
-                playerNetwork.NextCommand = "JOIN " + Players[0].Name.Replace(' ', '_') + " " + Program.SessionKey;
-                playerNetwork.NewCommand = true;
-                while (!playerNetwork.NewResponse)
+                string ServerResponse = "";
+                try
                 {
-                    Application.DoEvents();
-                    if (playerNetwork.Dropped)
-                    {
-                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Application.Restart();
-                        break;
-                    }
+                    ServerResponse = SharedNetworking.Communicate(playerNetwork, "JOIN " + Players[0].Name.Replace(' ', '_') + " " + Program.SessionKey);
                 }
-                string ServerResponse = playerNetwork.LastResponse;
-                playerNetwork.NewResponse = false;
+                catch (SocketException)
+                {
+                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Restart();
+                }
                 if (ServerResponse == "SUCCESS")
                 {
                     Program.CurrentPlayer = LocalPlayers[0];
@@ -277,33 +271,26 @@ namespace JoePitt.Cards
                         }
                     }
                     MessageBox.Show("Failed to Join Game: " + reason, "Failed to Join", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    playerNetwork.NextCommand = "EXIT";
-                    playerNetwork.NewCommand = true;
-                    while (!playerNetwork.NewResponse)
+                    try
                     {
-                        Application.DoEvents();
-                        if (playerNetwork.Dropped)
-                        {
-                            break;
-                        }
+                        SharedNetworking.Communicate(playerNetwork, "EXIT");
                     }
+                    catch (SocketException) { }
                     return false;
                 }
+
                 SetupGame:
-                Program.CurrentPlayer.NextCommand = "GETRULES";
-                Program.CurrentPlayer.NewCommand = true;
-                while (!Program.CurrentPlayer.NewResponse)
+                string response = "";
+                try
                 {
-                    Application.DoEvents();
-                    if (playerNetwork.Dropped)
-                    {
-                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Application.Restart();
-                        break;
-                    }
+                    response = SharedNetworking.Communicate(playerNetwork, "GETRULES");
                 }
-                string[] responses = Program.CurrentPlayer.LastResponse.Split(' ');
-                Program.CurrentPlayer.NewResponse = false;
+                catch (SocketException)
+                {
+                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Restart();
+                }
+                string[] responses = response.Split(' ');
                 foreach (string setting in responses)
                 {
                     string[] settingPair = setting.Split(':');
@@ -326,22 +313,15 @@ namespace JoePitt.Cards
                             break;
                     }
                 }
-
-                Program.CurrentPlayer.NextCommand = "GETCARDS";
-                Program.CurrentPlayer.NewCommand = true;
-                while (!Program.CurrentPlayer.NewResponse)
+                try
                 {
-                    Application.DoEvents();
-                    if (playerNetwork.Dropped)
-                    {
-                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Application.Restart();
-                        break;
-                    }
+                    response = SharedNetworking.Communicate(playerNetwork, "GETCARDS");
                 }
-                string response = Program.CurrentPlayer.LastResponse;
-                Program.CurrentPlayer.NewResponse = false;
-
+                catch (SocketException)
+                {
+                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Restart();
+                }
                 using (MemoryStream stream = new MemoryStream(Convert.FromBase64String(response)))
                 {
                     stream.Position = 0;

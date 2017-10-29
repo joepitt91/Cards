@@ -1,4 +1,5 @@
 ﻿using JoePitt.Cards.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -21,12 +22,12 @@ namespace JoePitt.Cards.UI
             InitializeComponent();
             FormClosing += Waiting_FormClosing;
         }
-        
+
         private void Waiting_Load(object sender, System.EventArgs e)
         {
             ThreadPool.QueueUserWorkItem(KeepUpdated);
         }
-        
+
         private void Waiting_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing && waiting)
@@ -64,20 +65,17 @@ namespace JoePitt.Cards.UI
             while (waiting)
             {
                 Program.CurrentPlayer = Program.CurrentGame.LocalPlayers[0];
-                Program.CurrentPlayer.NextCommand = "GAMEUPDATE";
-                Program.CurrentPlayer.NewCommand = true;
-                while (!Program.CurrentPlayer.NewResponse)
+                string fullResponse = "";
+                try
                 {
-                    Application.DoEvents();
-                    if (Program.CurrentPlayer.Dropped)
-                    {
-                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Application.Restart();
-                        break;
-                    }
+                    fullResponse = SharedNetworking.Communicate(Program.CurrentPlayer, "GAMEUPDATE");
                 }
-                string[] response = Program.CurrentPlayer.LastResponse.Split(' ');
-                Program.CurrentPlayer.NewResponse = false;
+                catch (SocketException)
+                {
+                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Restart();
+                }
+                string[] response = fullResponse.Split(' ');
                 switch (response[0])
                 {
                     case "WAITING":
@@ -107,20 +105,17 @@ namespace JoePitt.Cards.UI
                         foreach (ClientNetworking player in Program.CurrentGame.LocalPlayers)
                         {
                             Program.CurrentPlayer = player;
-                            Program.CurrentPlayer.NextCommand = "NEED ANSWER";
-                            Program.CurrentPlayer.NewCommand = true;
-                            while (!Program.CurrentPlayer.NewResponse)
+                            string fullResponseP = "";
+                            try
                             {
-                                Application.DoEvents();
-                                if (Program.CurrentPlayer.Dropped)
-                                {
-                                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    Application.Restart();
-                                    break;
-                                }
+                                fullResponseP = SharedNetworking.Communicate(Program.CurrentPlayer, "NEED ANSWER");
                             }
-                            string[] responseP = Program.CurrentPlayer.LastResponse.Split(' ');
-                            Program.CurrentPlayer.NewResponse = false;
+                            catch (SocketException)
+                            {
+                                MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                Application.Restart();
+                            }
+                            string[] responseP = fullResponseP.Split(' ');
                             switch (responseP[0])
                             {
                                 case "YES":
@@ -140,20 +135,17 @@ namespace JoePitt.Cards.UI
                         foreach (ClientNetworking player in Program.CurrentGame.LocalPlayers)
                         {
                             Program.CurrentPlayer = player;
-                            Program.CurrentPlayer.NextCommand = "NEED VOTE";
-                            Program.CurrentPlayer.NewCommand = true;
-                            while (!Program.CurrentPlayer.NewResponse)
+                            string fullResponseP = "";
+                            try
                             {
-                                Application.DoEvents();
-                                if (Program.CurrentPlayer.Dropped)
-                                {
-                                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    Application.Restart();
-                                    break;
-                                }
+                                fullResponseP = SharedNetworking.Communicate(Program.CurrentPlayer, "NEED VOTE");
                             }
-                            string[] responseP = Program.CurrentPlayer.LastResponse.Split(' ');
-                            Program.CurrentPlayer.NewResponse = false;
+                            catch (SocketException)
+                            {
+                                MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                Application.Restart();
+                            }
+                            string[] responseP = fullResponseP.Split(' ');
                             switch (responseP[0])
                             {
                                 case "YES":

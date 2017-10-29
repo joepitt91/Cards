@@ -1,6 +1,8 @@
-﻿using System;
+﻿using JoePitt.Cards.Net;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Sockets;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -49,23 +51,19 @@ namespace JoePitt.Cards.UI
         private void Gameplay_Load(object sender, EventArgs e)
         {
             Text = Program.CurrentPlayer.Owner.Name + " - Cards";
-            Program.CurrentPlayer.NextCommand = "GAMEUPDATE";
-            Program.CurrentPlayer.NewCommand = true;
-            while (!Program.CurrentPlayer.NewResponse)
+            string fullResponse = "";
+            try
             {
-                Application.DoEvents();
-                if (Program.CurrentPlayer.Dropped)
-                {
-                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Application.Restart();
-                    break;
-                }
+                fullResponse = SharedNetworking.Communicate(Program.CurrentPlayer, "GAMEUPDATE");
             }
-            string[] response = Program.CurrentPlayer.LastResponse.Split(' ');
-            Program.CurrentPlayer.NewResponse = false;
+            catch (SocketException)
+            {
+                MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Application.Restart();
+            }
+            string[] response = fullResponse.Split(' ');
             if (response[0] == "PLAYING")
             {
-
                 using (MemoryStream stream = new MemoryStream(Convert.FromBase64String(response[1])))
                 {
                     stream.Position = 0;
@@ -85,20 +83,16 @@ namespace JoePitt.Cards.UI
                 }
                 txtBlackCard.Select(txtBlackCard.Text.Length, 0);
 
-                Program.CurrentPlayer.NextCommand = "MYCARDS";
-                Program.CurrentPlayer.NewCommand = true;
-                while (!Program.CurrentPlayer.NewResponse)
+                string cards = "";
+                try
                 {
-                    Application.DoEvents();
-                    if (Program.CurrentPlayer.Dropped)
-                    {
-                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Application.Restart();
-                        break;
-                    }
+                    cards = SharedNetworking.Communicate(Program.CurrentPlayer, "MYCARDS");
                 }
-                string cards = Program.CurrentPlayer.LastResponse;
-                Program.CurrentPlayer.NewResponse = false;
+                catch (SocketException)
+                {
+                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Restart();
+                }
                 try
                 {
                     using (MemoryStream stream = new MemoryStream(Convert.FromBase64String(cards)))
@@ -225,20 +219,17 @@ namespace JoePitt.Cards.UI
             }
             if (MessageBox.Show("Submit: " + myAnswer.ToString, "Confirm Answer", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                Program.CurrentPlayer.NextCommand = "SUBMIT " + Convert.ToBase64String(myAnswer.ToByteArray());
-                Program.CurrentPlayer.NewCommand = true;
-                while (!Program.CurrentPlayer.NewResponse)
+
+                string response = "";
+                try
                 {
-                    Application.DoEvents();
-                    if (Program.CurrentPlayer.Dropped)
-                    {
-                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Application.Restart();
-                        break;
-                    }
+                    response = SharedNetworking.Communicate(Program.CurrentPlayer, "SUBMIT " + Convert.ToBase64String(myAnswer.ToByteArray()));
                 }
-                string response = Program.CurrentPlayer.LastResponse;
-                Program.CurrentPlayer.NewResponse = false;
+                catch (SocketException)
+                {
+                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Restart();
+                }
                 if (response == "SUBMITTED")
                 {
                     Submitted = true;

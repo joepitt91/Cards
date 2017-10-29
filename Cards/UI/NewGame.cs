@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -144,24 +145,19 @@ namespace JoePitt.Cards.UI
                     {
                         if (!player.Name.ToLower().StartsWith("[bot]"))
                         {
-                            ClientNetworking playerNetwork = new ClientNetworking(player, "127.0.0.1", Program.CurrentGame.HostNetwork.Port)
+                            ClientNetworking playerNetwork = new ClientNetworking(player, "127.0.0.1", Program.CurrentGame.HostNetwork.Port);
+                            string response = "";
+                            try
                             {
-                                NextCommand = "JOIN " + player.Name.Replace(' ', '_') + " " + Program.SessionKey,
-                                NewCommand = true
-                            };
-                            while (!playerNetwork.NewResponse)
-                            {
-                                Application.DoEvents();
-                                if (playerNetwork.Dropped)
-                                {
-                                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    Application.Restart();
-                                    break;
-                                }
+                                response = SharedNetworking.Communicate(playerNetwork, "JOIN " + player.Name.Replace(' ', '_') + " " + Program.SessionKey);
                             }
-                            if (playerNetwork.LastResponse == "SUCCESS")
+                            catch (SocketException)
                             {
-                                playerNetwork.NewResponse = false;
+                                MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                Application.Restart();
+                            }
+                            if (response == "SUCCESS")
+                            {
                                 Program.CurrentGame.LocalPlayers.Add(playerNetwork);
                             }
                         }
@@ -270,23 +266,20 @@ namespace JoePitt.Cards.UI
                     NextCommand = "JOIN " + txtPlayerNameHost.Text.Replace(' ', '_') + " " + Program.SessionKey,
                     NewCommand = true
                 };
-
-                while (!playerNetwork.NewResponse)
+                string fullResponse = "";
+                try
                 {
-                    Application.DoEvents();
-                    if (playerNetwork.Dropped)
-                    {
-                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Application.Restart();
-                        break;
-                    }
+                    fullResponse = SharedNetworking.Communicate(playerNetwork, "JOIN " + txtPlayerNameHost.Text.Replace(' ', '_') + " " + Program.SessionKey);
+                }
+                catch (SocketException)
+                {
+                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Restart();
                 }
 
-                if (playerNetwork.LastResponse == "SUCCESS")
+                if (fullResponse == "SUCCESS")
                 {
-                    playerNetwork.NewResponse = false;
                     Program.CurrentGame.LocalPlayers.Add(playerNetwork);
-
                     ConnectionDetails connectionDetails = new ConnectionDetails();
                     connectionDetails.ShowDialog();
                     Close();

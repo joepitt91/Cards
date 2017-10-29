@@ -1,6 +1,8 @@
-﻿using System;
+﻿using JoePitt.Cards.Net;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Sockets;
 using System.Windows.Forms;
 
 namespace JoePitt.Cards.UI
@@ -63,23 +65,19 @@ namespace JoePitt.Cards.UI
 
         private void Vote_Load(object sender, EventArgs e)
         {
-            Program.CurrentPlayer.NextCommand = "GAMEUPDATE";
-            Program.CurrentPlayer.NewCommand = true;
-            while (!Program.CurrentPlayer.NewResponse)
+            string fullResponse = "";
+            try
             {
-                Application.DoEvents();
-                if (Program.CurrentPlayer.Dropped)
-                {
-                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Application.Restart();
-                    break;
-                }
+                fullResponse = SharedNetworking.Communicate(Program.CurrentPlayer, "GAMEUPDATE");
             }
-            string[] response = Program.CurrentPlayer.LastResponse.Split(' ');
-            Program.CurrentPlayer.NewResponse = false;
+            catch (SocketException)
+            {
+                MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Application.Restart();
+            }
+            string[] response = fullResponse.Split(' ');
             if (response[0] == "VOTING")
             {
-                
                 using (MemoryStream stream = new MemoryStream(Convert.FromBase64String(response[1])))
                 {
                     stream.Position = 0;
@@ -114,20 +112,16 @@ namespace JoePitt.Cards.UI
                 Vote myVote = new Vote(Program.CurrentPlayer.Owner, Program.CurrentGame.Answers[cmbAnswers.SelectedIndex]);
                 byte[] myVoteBytes = myVote.ToByteArray();
                 string myVoteBase64 = Convert.ToBase64String(myVoteBytes);
-                Program.CurrentPlayer.NextCommand = "VOTE " + myVoteBase64;
-                Program.CurrentPlayer.NewCommand = true;
-                while (!Program.CurrentPlayer.NewResponse)
+                string response = "";
+                try
                 {
-                    Application.DoEvents();
-                    if (Program.CurrentPlayer.Dropped)
-                    {
-                        MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        Application.Restart();
-                        break;
-                    }
+                    response = SharedNetworking.Communicate(Program.CurrentPlayer, "VOTE " + myVoteBase64);
                 }
-                string response = Program.CurrentPlayer.LastResponse;
-                Program.CurrentPlayer.NewResponse = false;
+                catch (SocketException)
+                {
+                    MessageBox.Show("Your Connection to the Game has been lost. Restarting.", "Connection Lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Restart();
+                }
                 if (response == "SUBMITTED")
                 {
                     Submitted = true;
