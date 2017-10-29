@@ -184,7 +184,8 @@ namespace JoePitt.Cards.UI
                     goto retry;
                 }
             }
-            catch
+            //Form has closed before testing has completed
+            catch (InvalidOperationException)
             { }
         }
 
