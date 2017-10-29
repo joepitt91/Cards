@@ -583,7 +583,7 @@ namespace JoePitt.Cards.Net
             return serverText;
         }
 
-        private string HandleMyCards(Player thisPlayer)
+        static private string HandleMyCards(Player thisPlayer)
         {
             if (thisPlayer.Name == "FAKE")
             {
