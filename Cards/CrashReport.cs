@@ -81,11 +81,7 @@ namespace JoePitt.Cards
                 gameStatus.Add(GetPlayersDetails());
                 gameStatus.Add(new XElement("Round", Program.CurrentGame.Round));
                 gameStatus.Add(new XElement("Stage", Program.CurrentGame.Stage));
-                XElement currentBlack = new XElement("CurrentBlackCard");
-                currentBlack.Add(new XAttribute("ID", Program.CurrentGame.CurrentBlackCard));
-                currentBlack.Add(new XAttribute("Needs", Program.CurrentGame.GameSet.BlackCards[Program.CurrentGame.GameSet.BlackCardIndex[Program.CurrentGame.CurrentBlackCard]].Needs));
-                currentBlack.Add(Program.CurrentGame.GameSet.BlackCards[Program.CurrentGame.GameSet.BlackCardIndex[Program.CurrentGame.CurrentBlackCard]].ToString);
-                gameStatus.Add(currentBlack);
+                gameStatus.Add(GetCurrentBlackCardDetails());
                 gameStatus.Add(GetAnswersDetails());
                 gameStatus.Add(GetVotesDetails());
                 gameStatus.Add(GetWinnersDetails());
@@ -219,6 +215,23 @@ namespace JoePitt.Cards
                 players.Add(new XAttribute("PopulateFailed", true));
             }
             return players;
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
+        private static XElement GetCurrentBlackCardDetails()
+        {
+            XElement currentBlack = new XElement("CurrentBlackCard");
+            try
+            {
+                currentBlack.Add(new XAttribute("ID", Program.CurrentGame.CurrentBlackCard));
+                currentBlack.Add(new XAttribute("Needs", Program.CurrentGame.GameSet.BlackCards[Program.CurrentGame.GameSet.BlackCardIndex[Program.CurrentGame.CurrentBlackCard]].Needs));
+                currentBlack.Add(Program.CurrentGame.GameSet.BlackCards[Program.CurrentGame.GameSet.BlackCardIndex[Program.CurrentGame.CurrentBlackCard]].ToString);
+            }
+            catch
+            {
+                currentBlack.Add(new XAttribute("PopulateFailed", true));
+            }
+            return currentBlack;
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
